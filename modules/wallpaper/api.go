@@ -5,12 +5,13 @@ type SearchParams struct {
 	Purity      string `form:"purity" binding:"required"`
 	Sorting     string `form:"sorting" binding:"required"`
 	Order       string `form:"order" binding:"required"`
-	TopRange    string `form:"topRange" binding:"required"`
-	AtLeast     string `form:"atleast" binding:"required"`
-	Resolutions string `form:"resolutions" binding:"required"`
-	Ratios      string `form:"ratios" binding:"required"`
-	Colors      string `form:"colors" binding:"required"`
+	TopRange    string `form:"topRange"`
+	AtLeast     string `form:"atleast"`
+	Resolutions string `form:"resolutions"`
+	Ratios      string `form:"ratios"`
+	Colors      string `form:"colors"`
 	Page        string `form:"page" binding:"required"`
+	AIArtFilter string `form:"ai_art_filter" binding:"required"`
 }
 
 type GetInfoParams struct {

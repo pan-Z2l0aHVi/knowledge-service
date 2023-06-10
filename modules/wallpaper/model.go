@@ -9,6 +9,7 @@ type Wallpaper struct {
 	Category    string   `json:"category"`
 	DimensionX  int      `json:"dimension_x"`
 	DimensionY  int      `json:"dimension_y"`
+	Ratio       string   `json:"ratio"`
 	Resolution  string   `json:"resolution"`
 	File_size   int      `json:"file_size"`
 	File_type   string   `json:"file_type"`

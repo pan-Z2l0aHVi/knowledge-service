@@ -16,6 +16,11 @@ const (
 )
 
 func (e *Wallpaper) search(ctx *gin.Context) {
+	var params SearchParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
+		return
+	}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", WALLHAVEN_API_V1+"/search?"+ctx.Request.URL.RawQuery, nil)
 	if err != nil {
