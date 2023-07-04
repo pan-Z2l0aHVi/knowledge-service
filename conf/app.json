@@ -1,7 +1,7 @@
 {
     "name":"knowledge_base",
     "mode": "debug",
-    "host": "127.0.0.1",
+    "host": "0.0.0.0",
     "port": "8080",
     "database": {
         "host": "8.129.105.196",
