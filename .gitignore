@@ -14,8 +14,8 @@
 .glide/
 
 # Gogland directory
-/.idea/
-/.vscode/
+# /.idea/
+# /.vscode/
 
 # Output of project
 *.db

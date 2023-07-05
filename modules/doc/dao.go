@@ -13,7 +13,7 @@ type DocDAO struct {
 }
 
 func (e *DocDAO) findDoc(ctx *gin.Context, docID string) (Doc, error) {
-	collection := e.GetDB().Collection("user")
+	collection := e.GetDB().Collection("doc")
 	objID, err := primitive.ObjectIDFromHex(docID)
 	if err != nil {
 		return Doc{}, err
