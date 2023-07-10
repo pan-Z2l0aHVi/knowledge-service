@@ -7,6 +7,7 @@
         "host": "8.129.105.196",
         "port": "27017",
         "user": "admin",
-        "pwd": "11568171"
+        "pwd": "11568171",
+        "name": "knowledge-base"
     }
 }

@@ -12,21 +12,38 @@ type DocDAO struct {
 	*tools.Mongo
 }
 
-func (e *DocDAO) findDoc(ctx *gin.Context, docID string) (Doc, error) {
-	collection := e.GetDB().Collection("doc")
+const (
+	COLLECTION_NAME = "doc"
+)
+
+func (e *DocDAO) find(ctx *gin.Context, docID string) (Doc, error) {
+	collection := e.GetDB().Collection(COLLECTION_NAME)
 	objID, err := primitive.ObjectIDFromHex(docID)
 	if err != nil {
 		return Doc{}, err
 	}
-	filter := bson.D{{"_id", objID}}
+	filter := bson.D{{Key: "_id", Value: objID}}
 	res := collection.FindOne(ctx, filter)
 	if err := res.Err(); err != nil {
 		return Doc{}, err
 	}
-
 	var docInfo Doc
 	if err := res.Decode(&docInfo); err != nil {
 		return Doc{}, err
 	}
 	return docInfo, nil
+}
+
+func (e *DocDAO) create(ctx *gin.Context) (Doc, error) {
+	collection := e.GetDB().Collection(COLLECTION_NAME)
+	doc := Doc{
+		ID:       primitive.NewObjectID(),
+		AuthorID: "qwer",
+		Content:  "<p>content</p>",
+	}
+	_, err := collection.InsertOne(ctx, doc)
+	if err != nil {
+		return Doc{}, err
+	}
+	return doc, nil
 }

@@ -1,6 +1,6 @@
 package wallpaper
 
-type SearchParams struct {
+type SearchQuery struct {
 	Categories  string `form:"categories" binding:"required"`
 	Purity      string `form:"purity" binding:"required"`
 	Sorting     string `form:"sorting" binding:"required"`
@@ -14,7 +14,7 @@ type SearchParams struct {
 	AIArtFilter string `form:"ai_art_filter" binding:"required"`
 }
 
-type GetInfoParams struct {
+type GetInfoQuery struct {
 	URL string `form:"url" binding:"required"`
 }
 

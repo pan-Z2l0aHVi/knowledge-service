@@ -19,6 +19,7 @@ type DatabaseConfigure struct {
 	Port string `json:"port"`
 	User string `json:"user"`
 	Pwd  string `json:"pwd"`
+	Name string `json:"name"`
 }
 
 var _cfg *Configure

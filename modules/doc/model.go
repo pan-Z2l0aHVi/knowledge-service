@@ -1,7 +1,9 @@
 package doc
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type Doc struct {
-	ID      string      `json:"_id"`
-	Content string      `json:"content"`
-	Author  interface{} `json:"author"`
+	ID       primitive.ObjectID `json:"doc_id" bson:"_id"`
+	Content  string             `json:"content"`
+	AuthorID string             `json:"author_id"`
 }

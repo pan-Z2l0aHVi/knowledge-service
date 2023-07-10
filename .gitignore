@@ -23,7 +23,7 @@ request.token
 /log/
 /vendor/*
 !/vendor/vendor.json
-dockerfile
+# dockerfile
 
 # Temporary files
-__debug_bin
+__debug_bin*

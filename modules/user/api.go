@@ -1,5 +1,5 @@
 package user
 
-type GetProfileParams struct {
+type GetProfileQuery struct {
 	UserID string `form:"user_id" binding:"required"`
 }

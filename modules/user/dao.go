@@ -12,13 +12,13 @@ type UserDAO struct {
 	*tools.Mongo
 }
 
-func (e *UserDAO) findDoc(ctx *gin.Context, docID string) (User, error) {
+func (e *UserDAO) find(ctx *gin.Context, userID string) (User, error) {
 	collection := e.GetDB().Collection("user")
-	objID, err := primitive.ObjectIDFromHex(docID)
+	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return User{}, err
 	}
-	filter := bson.D{{"_id", objID}}
+	filter := bson.D{{Key: "_id", Value: objID}}
 	res := collection.FindOne(ctx, filter)
 	if err := res.Err(); err != nil {
 		return User{}, err

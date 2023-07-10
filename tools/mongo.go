@@ -31,7 +31,7 @@ func (e *Mongo) InitDB() {
 		panic(err)
 	}
 
-	db = client.Database("knowledge-base")
+	db = client.Database(cfg.Database.Name)
 }
 
 func (e *Mongo) GetDB() *mongo.Database {
