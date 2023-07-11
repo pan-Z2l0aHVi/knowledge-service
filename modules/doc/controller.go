@@ -7,13 +7,13 @@ import (
 )
 
 func (e *Doc) getInfo(ctx *gin.Context) {
-	var params GetInfoQuery
-	if err := ctx.ShouldBindQuery(&params); err != nil {
+	var query GetInfoQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
 		return
 	}
 	dao := DocDAO{}
-	docInfo, err := dao.find(ctx, params.DocID)
+	docInfo, err := dao.find(ctx, query.DocID)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
@@ -29,6 +29,7 @@ func (e *Doc) create(ctx *gin.Context) {
 	docInfo, err := dao.create(ctx)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
+		return
 	}
 	tools.RespSuccess(ctx, docInfo)
 }

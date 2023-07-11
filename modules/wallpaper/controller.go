@@ -16,8 +16,8 @@ const (
 )
 
 func (e *Wallpaper) search(ctx *gin.Context) {
-	var params SearchQuery
-	if err := ctx.ShouldBindQuery(&params); err != nil {
+	var query SearchQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
 		return
 	}
@@ -47,14 +47,15 @@ func (e *Wallpaper) search(ctx *gin.Context) {
 }
 
 func (e *Wallpaper) getInfo(ctx *gin.Context) {
-	var params GetInfoQuery
-	if err := ctx.ShouldBindQuery(&params); err != nil {
+	var query GetInfoQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
 		return
 	}
-	decodedURL, err := url.QueryUnescape(params.URL)
+	decodedURL, err := url.QueryUnescape(query.URL)
 	if err != nil {
 		tools.RespFail(ctx, 200, err.Error(), nil)
+		return
 	}
 	url := strings.Replace(decodedURL, "https://wallhaven.cc", WALLHAVEN_API, 1)
 	client := &http.Client{}

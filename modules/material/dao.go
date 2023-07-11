@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MaterialDAO struct {
@@ -35,7 +36,7 @@ func (e *MaterialDAO) find(ctx *gin.Context, materialID string) (Material, error
 	return materialInfo, nil
 }
 
-func (e *MaterialDAO) search(ctx *gin.Context, material_type int, keywords string) ([]Material, error) {
+func (e *MaterialDAO) search(ctx *gin.Context, material_type int, keywords string, page int, pageSize int) ([]Material, error) {
 	collection := e.GetDB().Collection(COLLECTION_NAME)
 	filter := bson.D{
 		{Key: "type", Value: material_type},
@@ -44,7 +45,12 @@ func (e *MaterialDAO) search(ctx *gin.Context, material_type int, keywords strin
 			{Key: "$options", Value: "i"},
 		}},
 	}
-	cursor, err := collection.Find(ctx, filter)
+	skip := int64((page - 1) * pageSize)
+	limit := int64(pageSize)
+	cursor, err := collection.Find(ctx, filter, &options.FindOptions{
+		Skip:  &skip,
+		Limit: &limit,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -55,12 +61,28 @@ func (e *MaterialDAO) search(ctx *gin.Context, material_type int, keywords strin
 	return materialList, nil
 }
 
-func (e *MaterialDAO) create(ctx *gin.Context) (Material, error) {
+func (e *MaterialDAO) getCount(ctx *gin.Context, material_type int, keywords string) (int64, error) {
+	collection := e.GetDB().Collection(COLLECTION_NAME)
+	filter := bson.D{
+		{Key: "type", Value: material_type},
+		{Key: "name", Value: bson.D{
+			{Key: "$regex", Value: keywords},
+			{Key: "$options", Value: "i"},
+		}},
+	}
+	count, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (e *MaterialDAO) create(ctx *gin.Context, material_type int, url string) (Material, error) {
 	collection := e.GetDB().Collection(COLLECTION_NAME)
 	material := Material{
 		ID:         primitive.NewObjectID(),
-		URL:        "",
-		Type:       1,
+		URL:        url,
+		Type:       material_type,
 		UploaderID: "",
 	}
 	collection.InsertOne(ctx, material)

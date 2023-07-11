@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.9.0
 	go.mongodb.org/mongo-driver v1.11.4
+	github.com/qiniu/go-sdk/v7 v7.17.0
 )
 
 require (

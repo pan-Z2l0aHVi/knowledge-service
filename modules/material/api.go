@@ -1,11 +1,12 @@
 package material
 
 type UploadPayload struct {
-	URL string `form:"url" binding:"required"`
+	Type int    `form:"type" binding:"required"`
+	URL  string `form:"url" binding:"required"`
 }
 
 type UploadResp struct {
-	URL string `json:"url"`
+	Material
 }
 
 type GetInfoQuery struct {
@@ -24,5 +25,6 @@ type MaterialSearchQuery struct {
 }
 
 type MaterialSearchResp struct {
-	Data []Material `json:"data"`
+	List  []Material `json:"list"`
+	Total int64      `json:"total"`
 }

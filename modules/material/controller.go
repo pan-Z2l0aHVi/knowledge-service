@@ -7,13 +7,13 @@ import (
 )
 
 func (e *Material) getInfo(ctx *gin.Context) {
-	var params GetInfoQuery
-	if err := ctx.ShouldBindQuery(&params); err != nil {
+	var query GetInfoQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
 		return
 	}
 	dao := MaterialDAO{}
-	materialInfo, err := dao.find(ctx, params.MaterialID)
+	materialInfo, err := dao.find(ctx, query.MaterialID)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
@@ -31,28 +31,40 @@ func (e *Material) upload(ctx *gin.Context) {
 		return
 	}
 	dao := MaterialDAO{}
-	materialInfo, err := dao.create(ctx)
+	materialInfo, err := dao.create(ctx, payload.Type, payload.URL)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
+		return
 	}
-	tools.RespSuccess(ctx, materialInfo)
+	res := UploadResp{
+		Material: materialInfo,
+	}
+	tools.RespSuccess(ctx, res)
 }
 
 func (e *Material) search(ctx *gin.Context) {
-	var params MaterialSearchQuery
-	if err := ctx.ShouldBindQuery(&params); err != nil {
+	var query MaterialSearchQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
 		return
 	}
 	dao := MaterialDAO{}
-	materialList, err := dao.search(ctx, params.Type, params.Keywords)
+	materialList, err := dao.search(ctx, query.Type, query.Keywords, query.Page, query.PageSize)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
+		return
 	}
-	materialLen := len(materialList)
-	if materialLen > 0 {
-		tools.RespSuccess(ctx, materialList)
-	} else {
-		tools.RespSuccess(ctx, []Material{})
+	total, err := dao.getCount(ctx, query.Type, query.Keywords)
+	if err != nil {
+		tools.RespFail(ctx, 1, err.Error(), nil)
+		return
 	}
+	if len(materialList) == 0 {
+		materialList = []Material{}
+	}
+	res := MaterialSearchResp{
+		Total: total,
+		List:  materialList,
+	}
+	tools.RespSuccess(ctx, res)
 }

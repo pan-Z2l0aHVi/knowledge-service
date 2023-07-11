@@ -2,6 +2,7 @@ package main
 
 import (
 	"knowledge-base-service/middlewares"
+	"knowledge-base-service/modules/bucket"
 	"knowledge-base-service/modules/doc"
 	"knowledge-base-service/modules/material"
 	"knowledge-base-service/modules/user"
@@ -34,4 +35,5 @@ func registerRouter(app *gin.Engine) {
 	new(doc.Doc).InitRouter(app)
 	new(wallpaper.Wallpaper).InitRouter((app))
 	new(material.Material).InitRouter((app))
+	new(bucket.Bucket).InitRouter((app))
 }
