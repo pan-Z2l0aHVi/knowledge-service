@@ -8,7 +8,7 @@ import (
 	"github.com/qiniu/go-sdk/v7/storage"
 )
 
-func (e *Bucket) getToken(ctx *gin.Context) {
+func (e *Bucket) GetToken(ctx *gin.Context) {
 	accessKey := "ZJAw5p66HbXlJQbXjDV5Y_qLAQXEirlm8MXcG-l2"
 	secretKey := "JOR_yrHI5nxg1SbZ1DF0i0BmkHYW45UH9FAXXx3m"
 	bucket := "youknown"

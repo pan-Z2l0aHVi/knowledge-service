@@ -12,7 +12,7 @@ type UserDAO struct {
 	*tools.Mongo
 }
 
-func (e *UserDAO) find(ctx *gin.Context, userID string) (User, error) {
+func (e *UserDAO) Find(ctx *gin.Context, userID string) (User, error) {
 	collection := e.GetDB().Collection("user")
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {

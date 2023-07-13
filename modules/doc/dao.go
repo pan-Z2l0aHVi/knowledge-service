@@ -16,7 +16,7 @@ const (
 	COLLECTION_NAME = "doc"
 )
 
-func (e *DocDAO) find(ctx *gin.Context, docID string) (Doc, error) {
+func (e *DocDAO) Find(ctx *gin.Context, docID string) (Doc, error) {
 	collection := e.GetDB().Collection(COLLECTION_NAME)
 	objID, err := primitive.ObjectIDFromHex(docID)
 	if err != nil {
@@ -34,7 +34,7 @@ func (e *DocDAO) find(ctx *gin.Context, docID string) (Doc, error) {
 	return docInfo, nil
 }
 
-func (e *DocDAO) create(ctx *gin.Context) (Doc, error) {
+func (e *DocDAO) Create(ctx *gin.Context) (Doc, error) {
 	collection := e.GetDB().Collection(COLLECTION_NAME)
 	doc := Doc{
 		ID:       primitive.NewObjectID(),

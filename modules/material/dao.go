@@ -17,7 +17,7 @@ const (
 	COLLECTION_NAME = "material"
 )
 
-func (e *MaterialDAO) find(ctx *gin.Context, materialID string) (Material, error) {
+func (e *MaterialDAO) Find(ctx *gin.Context, materialID string) (Material, error) {
 	collection := e.GetDB().Collection(COLLECTION_NAME)
 	objID, err := primitive.ObjectIDFromHex(materialID)
 	if err != nil {
@@ -36,7 +36,7 @@ func (e *MaterialDAO) find(ctx *gin.Context, materialID string) (Material, error
 	return materialInfo, nil
 }
 
-func (e *MaterialDAO) search(ctx *gin.Context, material_type int, keywords string, page int, pageSize int) ([]Material, error) {
+func (e *MaterialDAO) Search(ctx *gin.Context, material_type int, keywords string, page int, pageSize int) ([]Material, error) {
 	collection := e.GetDB().Collection(COLLECTION_NAME)
 	filter := bson.D{
 		{Key: "type", Value: material_type},
@@ -61,7 +61,7 @@ func (e *MaterialDAO) search(ctx *gin.Context, material_type int, keywords strin
 	return materialList, nil
 }
 
-func (e *MaterialDAO) getCount(ctx *gin.Context, material_type int, keywords string) (int64, error) {
+func (e *MaterialDAO) GetCount(ctx *gin.Context, material_type int, keywords string) (int64, error) {
 	collection := e.GetDB().Collection(COLLECTION_NAME)
 	filter := bson.D{
 		{Key: "type", Value: material_type},
@@ -77,7 +77,7 @@ func (e *MaterialDAO) getCount(ctx *gin.Context, material_type int, keywords str
 	return count, nil
 }
 
-func (e *MaterialDAO) create(ctx *gin.Context, material_type int, url string) (Material, error) {
+func (e *MaterialDAO) Create(ctx *gin.Context, material_type int, url string) (Material, error) {
 	collection := e.GetDB().Collection(COLLECTION_NAME)
 	material := Material{
 		ID:         primitive.NewObjectID(),

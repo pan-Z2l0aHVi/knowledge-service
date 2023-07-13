@@ -13,7 +13,7 @@ func (e *Material) getInfo(ctx *gin.Context) {
 		return
 	}
 	dao := MaterialDAO{}
-	materialInfo, err := dao.find(ctx, query.MaterialID)
+	materialInfo, err := dao.Find(ctx, query.MaterialID)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
@@ -31,7 +31,7 @@ func (e *Material) upload(ctx *gin.Context) {
 		return
 	}
 	dao := MaterialDAO{}
-	materialInfo, err := dao.create(ctx, payload.Type, payload.URL)
+	materialInfo, err := dao.Create(ctx, payload.Type, payload.URL)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
@@ -49,12 +49,12 @@ func (e *Material) search(ctx *gin.Context) {
 		return
 	}
 	dao := MaterialDAO{}
-	materialList, err := dao.search(ctx, query.Type, query.Keywords, query.Page, query.PageSize)
+	materialList, err := dao.Search(ctx, query.Type, query.Keywords, query.Page, query.PageSize)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
 	}
-	total, err := dao.getCount(ctx, query.Type, query.Keywords)
+	total, err := dao.GetCount(ctx, query.Type, query.Keywords)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return

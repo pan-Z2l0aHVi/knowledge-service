@@ -6,14 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (e *Doc) getInfo(ctx *gin.Context) {
+func (e *Doc) GetInfo(ctx *gin.Context) {
 	var query GetInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
 		return
 	}
 	dao := DocDAO{}
-	docInfo, err := dao.find(ctx, query.DocID)
+	docInfo, err := dao.Find(ctx, query.DocID)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
@@ -24,9 +24,9 @@ func (e *Doc) getInfo(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
-func (e *Doc) create(ctx *gin.Context) {
+func (e *Doc) Create(ctx *gin.Context) {
 	dao := DocDAO{}
-	docInfo, err := dao.create(ctx)
+	docInfo, err := dao.Create(ctx)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
@@ -34,6 +34,6 @@ func (e *Doc) create(ctx *gin.Context) {
 	tools.RespSuccess(ctx, docInfo)
 }
 
-func (e *Doc) update(ctx *gin.Context) {
+func (e *Doc) Update(ctx *gin.Context) {
 
 }

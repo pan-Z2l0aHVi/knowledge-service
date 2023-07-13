@@ -31,9 +31,9 @@ func main() {
 }
 
 func registerRouter(app *gin.Engine) {
-	new(user.User).InitRouter(app)
 	new(doc.Doc).InitRouter(app)
-	new(wallpaper.Wallpaper).InitRouter((app))
-	new(material.Material).InitRouter((app))
-	new(bucket.Bucket).InitRouter((app))
+	new(wallpaper.Wallpaper).InitRouter(app)
+	new(material.Material).InitRouter(app)
+	new(bucket.Bucket).InitRouter(app)
+	new(user.User).InitRouter(app)
 }
