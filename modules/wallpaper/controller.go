@@ -6,6 +6,7 @@ import (
 	"knowledge-base-service/tools"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -21,23 +22,28 @@ func (e *Wallpaper) Search(ctx *gin.Context) {
 		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
 		return
 	}
-	resp, err := http.Get(WALLHAVEN_API + "/search?" + ctx.Request.URL.RawQuery)
+	page, err := strconv.Atoi(query.Page)
 	if err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
+	// wallpaper api 的 page_size 固定为 24，接口转发时改为 48
+	ch1 := make(chan SearchAPIRes)
+	ch2 := make(chan SearchAPIRes)
+	go chSearchWallpaper(ch1, query, 2*page-1)
+	go chSearchWallpaper(ch2, query, 2*page)
+	res1 := <-ch1
+	res2 := <-ch2
+	if res1.Error != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
 	}
-	var searchResult WallhavenSearchResp
-	if err = json.Unmarshal(body, &searchResult); err != nil {
+	if res2.Error != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
 	}
-	tools.RespSuccess(ctx, searchResult.Data)
+	data := append(res1.Result.Data, res2.Result.Data...)
+	tools.RespSuccess(ctx, data)
 }
 
 func (e *Wallpaper) GetInfo(ctx *gin.Context) {
@@ -63,10 +69,54 @@ func (e *Wallpaper) GetInfo(ctx *gin.Context) {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
 	}
-	var infoResult WallhavenInfoResp
-	if err := json.Unmarshal(body, &infoResult); err != nil {
+	var info WallpaperInfoResp
+	if err := json.Unmarshal(body, &info); err != nil {
 		tools.RespFail(ctx, 1, err.Error(), nil)
 		return
 	}
-	tools.RespSuccess(ctx, infoResult.Data)
+	tools.RespSuccess(ctx, info.Data)
+}
+
+func chSearchWallpaper(ch chan<- SearchAPIRes, query SearchQuery, page int) {
+	query.Page = strconv.Itoa(2 * page)
+	searchRes, err := searchWallpaper(query)
+	if err != nil {
+		ch <- SearchAPIRes{
+			Error: err,
+		}
+	} else {
+		ch <- SearchAPIRes{
+			Result: searchRes,
+		}
+	}
+}
+
+func searchWallpaper(query SearchQuery) (SearchResp, error) {
+	v := url.Values{}
+	v.Set("categories", query.Categories)
+	v.Set("purity", query.Purity)
+	v.Set("sorting", query.Sorting)
+	v.Set("order", query.Order)
+	v.Set("topRang", query.TopRange)
+	v.Set("atleast", query.AtLeast)
+	v.Set("resolutions", query.Resolutions)
+	v.Set("ratios", query.Ratios)
+	v.Set("colors", query.Colors)
+	v.Set("ai_art_filter", query.AIArtFilter)
+	v.Set("page", query.Page)
+
+	resp, err := http.Get(WALLHAVEN_API + "/search?" + v.Encode())
+	if err != nil {
+		return SearchResp{}, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return SearchResp{}, err
+	}
+	var result SearchResp
+	if err = json.Unmarshal(body, &result); err != nil {
+		return SearchResp{}, err
+	}
+	return result, nil
 }

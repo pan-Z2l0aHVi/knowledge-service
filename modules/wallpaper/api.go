@@ -10,18 +10,23 @@ type SearchQuery struct {
 	Resolutions string `form:"resolutions"`
 	Ratios      string `form:"ratios"`
 	Colors      string `form:"colors"`
-	Page        string `form:"page" binding:"required"`
 	AIArtFilter string `form:"ai_art_filter" binding:"required"`
+	Page        string `form:"page" binding:"required"`
 }
 
 type GetInfoQuery struct {
 	URL string `form:"url" binding:"required"`
 }
 
-type WallhavenSearchResp struct {
+type SearchResp struct {
 	Data []Wallpaper `json:"data"`
 }
 
-type WallhavenInfoResp struct {
+type WallpaperInfoResp struct {
 	Data Wallpaper `json:"data"`
+}
+
+type SearchAPIRes struct {
+	Error  error
+	Result SearchResp
 }
