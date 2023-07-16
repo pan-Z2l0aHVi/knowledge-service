@@ -1,12 +1,17 @@
 package user
 
 type GetProfileQuery struct {
-	UserID string `form:"user_id" binding:"required"`
+	UserID string `form:"user_id"`
 }
 
 type SignInPayload struct {
 	Type int    `form:"type" binding:"required"`
 	Code string `form:"code" binding:"required"`
+}
+
+type SignInRes struct {
+	User
+	Token string `json:"token"`
 }
 
 type GitHubTokenPayload struct {

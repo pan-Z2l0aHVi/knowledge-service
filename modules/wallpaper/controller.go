@@ -3,6 +3,7 @@ package wallpaper
 import (
 	"encoding/json"
 	"io/ioutil"
+	"knowledge-base-service/consts"
 	"knowledge-base-service/tools"
 	"net/http"
 	"net/url"
@@ -13,18 +14,18 @@ import (
 )
 
 const (
-	WALLHAVEN_API = "https://wallhaven.cc/api/v1"
+	WallhavenAPI = "https://wallhaven.cc/api/v1"
 )
 
 func (e *Wallpaper) Search(ctx *gin.Context) {
 	var query SearchQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
 	page, err := strconv.Atoi(query.Page)
 	if err != nil {
-		tools.RespFail(ctx, 1, err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	// wallpaper api 的 page_size 固定为 24，接口转发时改为 48
@@ -35,11 +36,11 @@ func (e *Wallpaper) Search(ctx *gin.Context) {
 	res1 := <-ch1
 	res2 := <-ch2
 	if res1.Error != nil {
-		tools.RespFail(ctx, 1, err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	if res2.Error != nil {
-		tools.RespFail(ctx, 1, err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	data := append(res1.Result.Data, res2.Result.Data...)
@@ -49,29 +50,29 @@ func (e *Wallpaper) Search(ctx *gin.Context) {
 func (e *Wallpaper) GetInfo(ctx *gin.Context) {
 	var query GetInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
 	decodedURL, err := url.QueryUnescape(query.URL)
 	if err != nil {
-		tools.RespFail(ctx, 1, err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
-	url := strings.Replace(decodedURL, "https://wallhaven.cc", WALLHAVEN_API, 1)
+	url := strings.Replace(decodedURL, "https://wallhaven.cc", WallhavenAPI, 1)
 	resp, err := http.Get(url)
 	if err != nil {
-		tools.RespFail(ctx, 1, err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		tools.RespFail(ctx, 1, err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	var info WallpaperInfoResp
 	if err := json.Unmarshal(body, &info); err != nil {
-		tools.RespFail(ctx, 1, err.Error(), nil)
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	tools.RespSuccess(ctx, info.Data)
@@ -105,7 +106,7 @@ func searchWallpaper(query SearchQuery) (SearchResp, error) {
 	v.Set("ai_art_filter", query.AIArtFilter)
 	v.Set("page", query.Page)
 
-	resp, err := http.Get(WALLHAVEN_API + "/search?" + v.Encode())
+	resp, err := http.Get(WallhavenAPI + "/search?" + v.Encode())
 	if err != nil {
 		return SearchResp{}, err
 	}

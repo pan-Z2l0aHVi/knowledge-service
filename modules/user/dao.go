@@ -14,11 +14,11 @@ type UserDAO struct {
 }
 
 const (
-	COLLECTION_NAME = "user"
+	CollectionName = "user"
 )
 
 func (e *UserDAO) FindByUserID(ctx *gin.Context, userID string) (User, error) {
-	collection := e.GetDB().Collection(COLLECTION_NAME)
+	collection := e.GetDB().Collection(CollectionName)
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return User{}, err
@@ -36,7 +36,7 @@ func (e *UserDAO) FindByUserID(ctx *gin.Context, userID string) (User, error) {
 }
 
 func (e *UserDAO) FindByGithubID(ctx *gin.Context, githubID int) (User, error) {
-	collection := e.GetDB().Collection(COLLECTION_NAME)
+	collection := e.GetDB().Collection(CollectionName)
 	filter := bson.D{{Key: "github_id", Value: githubID}}
 	res := collection.FindOne(ctx, filter)
 	if err := res.Err(); err != nil {
@@ -57,7 +57,7 @@ func (e *UserDAO) Create(
 	associated int,
 	githubID int,
 ) (User, error) {
-	collection := e.GetDB().Collection(COLLECTION_NAME)
+	collection := e.GetDB().Collection(CollectionName)
 	user := User{
 		UserID:     primitive.NewObjectID(),
 		Nickname:   nickname,

@@ -1,19 +1,15 @@
 package tools
 
 import (
+	"knowledge-base-service/consts"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	SUCCESS int = 0
-	TOAST   int = 1
-)
-
 func RespSuccess(ctx *gin.Context, val interface{}) {
 	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"code": SUCCESS,
+		"code": consts.SuccessCode,
 		"msg":  "成功",
 		"data": val,
 	})

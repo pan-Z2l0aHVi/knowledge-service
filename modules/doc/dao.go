@@ -13,11 +13,11 @@ type DocDAO struct {
 }
 
 const (
-	COLLECTION_NAME = "doc"
+	CollectionName = "doc"
 )
 
 func (e *DocDAO) Find(ctx *gin.Context, docID string) (Doc, error) {
-	collection := e.GetDB().Collection(COLLECTION_NAME)
+	collection := e.GetDB().Collection(CollectionName)
 	objID, err := primitive.ObjectIDFromHex(docID)
 	if err != nil {
 		return Doc{}, err
@@ -35,7 +35,7 @@ func (e *DocDAO) Find(ctx *gin.Context, docID string) (Doc, error) {
 }
 
 func (e *DocDAO) Create(ctx *gin.Context) (Doc, error) {
-	collection := e.GetDB().Collection(COLLECTION_NAME)
+	collection := e.GetDB().Collection(CollectionName)
 	doc := Doc{
 		ID:       primitive.NewObjectID(),
 		AuthorID: "qwer",
