@@ -22,7 +22,7 @@ func main() {
 
 	var mongo *tools.Mongo
 	mongo.InitDB()
-	registerRouter(app)
+	registerRoutes(app)
 
 	addr := cfg.Host + ":" + cfg.Port
 	if err := app.Run(addr); err != nil {
@@ -30,7 +30,7 @@ func main() {
 	}
 }
 
-func registerRouter(app *gin.Engine) {
+func registerRoutes(app *gin.Engine) {
 	new(doc.Doc).InitRouter(app)
 	new(wallpaper.Wallpaper).InitRouter(app)
 	new(material.Material).InitRouter(app)

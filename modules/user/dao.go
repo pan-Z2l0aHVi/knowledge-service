@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"knowledge-base-service/tools"
 
 	"github.com/gin-gonic/gin"
@@ -12,8 +13,12 @@ type UserDAO struct {
 	*tools.Mongo
 }
 
-func (e *UserDAO) Find(ctx *gin.Context, userID string) (User, error) {
-	collection := e.GetDB().Collection("user")
+const (
+	COLLECTION_NAME = "user"
+)
+
+func (e *UserDAO) FindByUserID(ctx *gin.Context, userID string) (User, error) {
+	collection := e.GetDB().Collection(COLLECTION_NAME)
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return User{}, err
@@ -23,10 +28,46 @@ func (e *UserDAO) Find(ctx *gin.Context, userID string) (User, error) {
 	if err := res.Err(); err != nil {
 		return User{}, err
 	}
-
-	var docInfo User
-	if err := res.Decode(&docInfo); err != nil {
+	var user User
+	if err := res.Decode(&user); err != nil {
 		return User{}, err
 	}
-	return docInfo, nil
+	return user, nil
+}
+
+func (e *UserDAO) FindByGithubID(ctx *gin.Context, githubID int) (User, error) {
+	collection := e.GetDB().Collection(COLLECTION_NAME)
+	filter := bson.D{{Key: "github_id", Value: githubID}}
+	res := collection.FindOne(ctx, filter)
+	if err := res.Err(); err != nil {
+		return User{}, err
+	}
+	var user User
+	if err := res.Decode(&user); err != nil {
+		return User{}, err
+	}
+	fmt.Println("user", user)
+	return user, nil
+}
+
+func (e *UserDAO) Create(
+	ctx *gin.Context,
+	nickname string,
+	avatar string,
+	associated int,
+	githubID int,
+) (User, error) {
+	collection := e.GetDB().Collection(COLLECTION_NAME)
+	user := User{
+		UserID:     primitive.NewObjectID(),
+		Nickname:   nickname,
+		Avatar:     avatar,
+		Associated: associated,
+		GithubID:   githubID,
+	}
+	_, err := collection.InsertOne(ctx, user)
+	if err != nil {
+		return User{}, err
+	}
+	return user, nil
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"knowledge-base-service/tools"
 	"net/http"
@@ -17,10 +16,22 @@ const (
 	GITHUB_CLIENT_ID        = "623037fcf1a6cb4ad6d8"
 	GITHUB_CLIENT_SECRET    = "7ccd7c57dce15c44deee8760f275085afe567708"
 	GITHUB_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
+	GITHUB_USER_API         = "https://api.github.com/user"
 )
 
 func (e *User) GetProfile(ctx *gin.Context) {
-
+	var query GetProfileQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		tools.RespFail(ctx, 1, "参数错误:"+err.Error(), nil)
+		return
+	}
+	dao := UserDAO{}
+	user, err := dao.FindByUserID(ctx, query.UserID)
+	if err != nil {
+		tools.RespFail(ctx, 1, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, user)
 }
 
 func (e *User) UpdateProfile(ctx *gin.Context) {
@@ -43,7 +54,30 @@ func (e *User) SignIn(ctx *gin.Context) {
 			tools.RespFail(ctx, 1, err.Error(), nil)
 			return
 		}
-		tools.RespSuccess(ctx, tokenResp)
+		githubProfile, err := getGithubProfile(tokenResp.AccessToken)
+		if err != nil {
+			tools.RespFail(ctx, 1, err.Error(), nil)
+			return
+		}
+		githubID := githubProfile.ID
+		dao := UserDAO{}
+		user, err := dao.FindByGithubID(ctx, githubID)
+		if err != nil {
+			user, err := dao.Create(
+				ctx,
+				githubProfile.Name,
+				githubProfile.AvatarURL,
+				TYPE_GITHUB,
+				githubID,
+			)
+			if err != nil {
+				tools.RespFail(ctx, 1, err.Error(), nil)
+				return
+			}
+			tools.RespSuccess(ctx, user)
+			return
+		}
+		tools.RespSuccess(ctx, user)
 		return
 	}
 	tools.RespFail(ctx, 1, "未知登录类型", nil)
@@ -75,7 +109,6 @@ func getGitHubToken(code string) (GitHubTokenSuccessResp, error) {
 	if err != nil {
 		return GitHubTokenSuccessResp{}, err
 	}
-	fmt.Println("body", string(body))
 	tokenResp := GitHubTokenResp{}
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
 		return GitHubTokenSuccessResp{}, err
@@ -89,4 +122,27 @@ func getGitHubToken(code string) (GitHubTokenSuccessResp, error) {
 		return GitHubTokenSuccessResp{}, errors.New(tokenResp.ErrorDescription)
 	}
 	return successResp, nil
+}
+
+func getGithubProfile(token string) (GithubProfileResp, error) {
+	req, err := http.NewRequest("GET", GITHUB_USER_API, nil)
+	if err != nil {
+		return GithubProfileResp{}, err
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return GithubProfileResp{}, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return GithubProfileResp{}, err
+	}
+	profile := GithubProfileResp{}
+	if err := json.Unmarshal(body, &profile); err != nil {
+		return GithubProfileResp{}, err
+	}
+	return profile, nil
 }
