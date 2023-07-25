@@ -79,7 +79,7 @@ func (e *Wallpaper) GetInfo(ctx *gin.Context) {
 }
 
 func chSearchWallpaper(ch chan<- SearchAPIRes, query SearchQuery, page int) {
-	query.Page = strconv.Itoa(2 * page)
+	query.Page = strconv.Itoa(page)
 	searchRes, err := searchWallpaper(query)
 	if err != nil {
 		ch <- SearchAPIRes{
@@ -94,16 +94,17 @@ func chSearchWallpaper(ch chan<- SearchAPIRes, query SearchQuery, page int) {
 
 func searchWallpaper(query SearchQuery) (SearchResp, error) {
 	v := url.Values{}
+	v.Set("q", query.Keywords)
+	v.Set("ai_art_filter", query.AIArtFilter)
 	v.Set("categories", query.Categories)
 	v.Set("purity", query.Purity)
 	v.Set("sorting", query.Sorting)
 	v.Set("order", query.Order)
-	v.Set("topRang", query.TopRange)
+	v.Set("topRange", query.TopRange)
 	v.Set("atleast", query.AtLeast)
 	v.Set("resolutions", query.Resolutions)
 	v.Set("ratios", query.Ratios)
 	v.Set("colors", query.Colors)
-	v.Set("ai_art_filter", query.AIArtFilter)
 	v.Set("page", query.Page)
 
 	resp, err := http.Get(WallhavenAPI + "/search?" + v.Encode())

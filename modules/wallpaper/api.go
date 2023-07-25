@@ -1,6 +1,7 @@
 package wallpaper
 
 type SearchQuery struct {
+	Keywords    string `form:"q"`
 	Categories  string `form:"categories" binding:"required"`
 	Purity      string `form:"purity" binding:"required"`
 	Sorting     string `form:"sorting" binding:"required"`
