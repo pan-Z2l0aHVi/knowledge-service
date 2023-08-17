@@ -1,11 +1,17 @@
 package doc
 
-import "github.com/gin-gonic/gin"
+import (
+	"knowledge-base-service/middlewares"
+
+	"github.com/gin-gonic/gin"
+)
 
 func (e *Doc) InitRouter(app *gin.Engine) {
 	group := app.Group("doc")
 
 	group.GET("/info", e.GetInfo)
-	group.POST("/create", e.Create)
-	group.POST("/update", e.Update)
+	group.GET("/docs", middlewares.VerifyToken(), e.GetDocs)
+	group.POST("/create", middlewares.VerifyToken(), e.Create)
+	group.POST("/update", middlewares.VerifyToken(), e.Update)
+	group.POST("/delete", middlewares.VerifyToken(), e.Delete)
 }

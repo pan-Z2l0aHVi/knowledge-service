@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func TokenAuth() gin.HandlerFunc {
+func VerifyToken() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		tokenStr := ctx.GetHeader("Authorization")
 		if tokenStr == "" {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"knowledge-base-service/consts"
 	"knowledge-base-service/tools"
 	"net/http"
@@ -29,7 +29,7 @@ func (e *User) GetProfile(ctx *gin.Context) {
 	var userID string
 	if query.UserID != "" {
 		userID = query.UserID
-	} else if uid, exists := ctx.Get("uid"); exists {
+	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	}
 	dao := UserDAO{}
@@ -62,12 +62,6 @@ func (e *User) SignIn(ctx *gin.Context) {
 			tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 			return
 		}
-		// FIXME:
-		// githubProfile := GithubProfileResp{
-		// 	Name:      "grey",
-		// 	AvatarURL: "https://avatars.githubusercontent.com/u/43576003?v=4",
-		// 	ID:        43576003,
-		// }
 		githubID := githubProfile.ID
 		dao := UserDAO{}
 		user, err := dao.FindByGithubID(ctx, githubID)
@@ -122,7 +116,7 @@ func getGitHubToken(code string) (GitHubTokenSuccessResp, error) {
 		return GitHubTokenSuccessResp{}, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return GitHubTokenSuccessResp{}, err
 	}
@@ -153,7 +147,7 @@ func getGithubProfile(token string) (GithubProfileResp, error) {
 		return GithubProfileResp{}, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return GithubProfileResp{}, err
 	}

@@ -2,7 +2,7 @@ package wallpaper
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"knowledge-base-service/consts"
 	"knowledge-base-service/tools"
 	"net/http"
@@ -65,7 +65,7 @@ func (e *Wallpaper) GetInfo(ctx *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
@@ -112,7 +112,7 @@ func searchWallpaper(query SearchQuery) (SearchResp, error) {
 		return SearchResp{}, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return SearchResp{}, err
 	}

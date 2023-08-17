@@ -13,12 +13,8 @@ type MaterialDAO struct {
 	*tools.Mongo
 }
 
-const (
-	CollectionName = "material"
-)
-
 func (e *MaterialDAO) Find(ctx *gin.Context, materialID string) (Material, error) {
-	collection := e.GetDB().Collection(CollectionName)
+	collection := e.GetDB().Collection("material")
 	objID, err := primitive.ObjectIDFromHex(materialID)
 	if err != nil {
 		return Material{}, err
@@ -36,8 +32,14 @@ func (e *MaterialDAO) Find(ctx *gin.Context, materialID string) (Material, error
 	return materialInfo, nil
 }
 
-func (e *MaterialDAO) Search(ctx *gin.Context, material_type int, keywords string, page int, pageSize int) ([]Material, error) {
-	collection := e.GetDB().Collection(CollectionName)
+func (e *MaterialDAO) Search(
+	ctx *gin.Context,
+	material_type int,
+	keywords string,
+	page int,
+	pageSize int,
+) ([]Material, error) {
+	collection := e.GetDB().Collection("material")
 	filter := bson.D{
 		{Key: "type", Value: material_type},
 		{Key: "name", Value: bson.D{
@@ -58,11 +60,14 @@ func (e *MaterialDAO) Search(ctx *gin.Context, material_type int, keywords strin
 	if err := cursor.All(ctx, &materialList); err != nil {
 		return nil, err
 	}
+	if materialList == nil {
+		materialList = []Material{}
+	}
 	return materialList, nil
 }
 
-func (e *MaterialDAO) GetCount(ctx *gin.Context, material_type int, keywords string) (int64, error) {
-	collection := e.GetDB().Collection(CollectionName)
+func (e *MaterialDAO) SearchCount(ctx *gin.Context, material_type int, keywords string) (int64, error) {
+	collection := e.GetDB().Collection("material")
 	filter := bson.D{
 		{Key: "type", Value: material_type},
 		{Key: "name", Value: bson.D{
@@ -70,15 +75,11 @@ func (e *MaterialDAO) GetCount(ctx *gin.Context, material_type int, keywords str
 			{Key: "$options", Value: "i"},
 		}},
 	}
-	count, err := collection.CountDocuments(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
+	return collection.CountDocuments(ctx, filter)
 }
 
 func (e *MaterialDAO) Create(ctx *gin.Context, material_type int, url string) (Material, error) {
-	collection := e.GetDB().Collection(CollectionName)
+	collection := e.GetDB().Collection("material")
 	material := Material{
 		ID:         primitive.NewObjectID(),
 		URL:        url,

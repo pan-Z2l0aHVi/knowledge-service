@@ -1,4 +1,4 @@
-package doc
+package feed
 
 import (
 	"time"
@@ -6,8 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Doc struct {
-	ID           primitive.ObjectID `json:"doc_id" bson:"_id"`
+type Feed struct {
+	FeedID       primitive.ObjectID `json:"feed_id" bson:"_id"`
 	Title        string             `json:"title" bson:"title"`
 	Content      string             `json:"content" bson:"content"`
 	AuthorID     string             `json:"author_id" bson:"author_id"`
@@ -15,10 +15,4 @@ type Doc struct {
 	Public       bool               `json:"public" bson:"public"`
 	CreationTime time.Time          `json:"creation_time" bson:"creation_time"`
 	UpdateTime   time.Time          `json:"update_time" bson:"update_time"`
-}
-
-type Author struct {
-	UserID   primitive.ObjectID `json:"user_id" bson:"_id"`
-	Nickname string             `json:"nickname" bson:"nickname"`
-	Avatar   string             `json:"avatar" bson:"avatar"`
 }

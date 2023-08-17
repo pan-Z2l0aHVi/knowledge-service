@@ -55,7 +55,7 @@ func (e *Material) Search(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
-	total, err := dao.GetCount(ctx, query.Type, query.Keywords)
+	total, err := dao.SearchCount(ctx, query.Type, query.Keywords)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return

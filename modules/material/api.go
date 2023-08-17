@@ -1,8 +1,8 @@
 package material
 
 type UploadPayload struct {
-	Type int    `form:"type" binding:"required"`
-	URL  string `form:"url" binding:"required"`
+	Type int    `json:"type" binding:"required"`
+	URL  string `json:"url" binding:"required"`
 }
 
 type UploadResp struct {

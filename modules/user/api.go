@@ -5,8 +5,8 @@ type GetProfileQuery struct {
 }
 
 type SignInPayload struct {
-	Type int    `form:"type" binding:"required"`
-	Code string `form:"code" binding:"required"`
+	Type int    `json:"type" binding:"required"`
+	Code string `json:"code" binding:"required"`
 }
 
 type SignInRes struct {
