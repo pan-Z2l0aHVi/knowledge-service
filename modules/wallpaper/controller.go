@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -107,7 +108,10 @@ func searchWallpaper(query SearchQuery) (SearchResp, error) {
 	v.Set("colors", query.Colors)
 	v.Set("page", query.Page)
 
-	resp, err := http.Get(WallhavenAPI + "/search?" + v.Encode())
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Get(WallhavenAPI + "/search?" + v.Encode())
 	if err != nil {
 		return SearchResp{}, err
 	}

@@ -11,7 +11,7 @@ import (
 func (e *Bucket) GetQiniuToken(ctx *gin.Context) {
 	accessKey := "ZJAw5p66HbXlJQbXjDV5Y_qLAQXEirlm8MXcG-l2"
 	secretKey := "JOR_yrHI5nxg1SbZ1DF0i0BmkHYW45UH9FAXXx3m"
-	bucket := "youknown"
+	bucket := "testyouknown"
 	putPolicy := storage.PutPolicy{
 		Scope: bucket,
 	}

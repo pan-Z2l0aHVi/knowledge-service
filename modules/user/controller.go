@@ -8,6 +8,7 @@ import (
 	"knowledge-base-service/consts"
 	"knowledge-base-service/tools"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -110,7 +111,9 @@ func getGitHubToken(code string) (GitHubTokenSuccessResp, error) {
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
-	client := &http.Client{}
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return GitHubTokenSuccessResp{}, err
@@ -141,7 +144,9 @@ func getGithubProfile(token string) (GithubProfileResp, error) {
 		return GithubProfileResp{}, err
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
-	client := &http.Client{}
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return GithubProfileResp{}, err

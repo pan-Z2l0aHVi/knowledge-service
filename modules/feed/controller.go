@@ -14,17 +14,31 @@ func (e *Feed) GetFeedList(ctx *gin.Context) {
 		return
 	}
 	dao := FeedDao{}
-	feedList, err := dao.FindFeedList(ctx, query.Page, query.PageSize)
-	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-	}
 	total, err := dao.FindFeedCount(ctx)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		return
+	}
+	feedList, err := dao.FindFeedList(ctx, query.Page, query.PageSize)
+	if err != nil {
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		return
+	}
+	list := make([]FeedListItem, len(feedList))
+	for i, item := range feedList {
+		author, err := dao.FindByAuthorID(ctx, item.AuthorID)
+		if err != nil {
+			tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+			return
+		}
+		list[i] = FeedListItem{
+			Feed:       item,
+			AuthorInfo: author,
+		}
 	}
 	res := GetFeedListResp{
 		Total: total,
-		List:  feedList,
+		List:  list,
 	}
 	tools.RespSuccess(ctx, res)
 }

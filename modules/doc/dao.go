@@ -109,9 +109,11 @@ func (e *DocDAO) FindDocsByAuthor(ctx *gin.Context, authorID string, page int, p
 	filter := bson.D{{Key: "author_id", Value: authorID}}
 	skip := int64((page - 1) * pageSize)
 	limit := int64(pageSize)
+	sort := bson.D{{Key: "update_time", Value: -1}}
 	cursor, err := collection.Find(ctx, filter, &options.FindOptions{
 		Skip:  &skip,
 		Limit: &limit,
+		Sort:  sort,
 	})
 	if err != nil {
 		return nil, err
