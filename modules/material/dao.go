@@ -58,6 +58,7 @@ func (e *MaterialDAO) Search(
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 	var materialList []Material
 	if err := cursor.All(ctx, &materialList); err != nil {
 		return nil, err

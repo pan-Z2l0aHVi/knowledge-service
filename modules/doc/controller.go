@@ -116,3 +116,33 @@ func (e *Doc) GetDocs(ctx *gin.Context) {
 	}
 	tools.RespSuccess(ctx, res)
 }
+
+func (e *Doc) GetDrafts(ctx *gin.Context) {
+	var query GetDraftQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		return
+	}
+	dao := DocDAO{}
+	drafts, err := dao.FindDraftsByDoc(ctx, query.DocID, query.Page, query.PageSize)
+	if err != nil {
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, drafts)
+}
+
+func (e *Doc) UpdateDraft(ctx *gin.Context) {
+	var payload UpdateDraftPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		return
+	}
+	dao := DocDAO{}
+	draft, err := dao.UpdateDraft(ctx, payload.DocID, payload.Content)
+	if err != nil {
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, draft)
+}

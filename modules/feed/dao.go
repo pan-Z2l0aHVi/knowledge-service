@@ -27,6 +27,7 @@ func (e *FeedDao) FindFeedList(ctx *gin.Context, page int, pageSize int) ([]Feed
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 	var feedList []Feed
 	if err := cursor.All(ctx, &feedList); err != nil {
 		return nil, err

@@ -22,3 +22,8 @@ type Author struct {
 	Nickname string             `json:"nickname" bson:"nickname"`
 	Avatar   string             `json:"avatar" bson:"avatar"`
 }
+
+type Draft struct {
+	Content      string    `json:"content" bson:"content"`
+	CreationTime time.Time `json:"creation_time" bson:"creation_time"`
+}

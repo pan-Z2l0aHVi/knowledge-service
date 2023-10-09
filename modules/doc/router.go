@@ -14,4 +14,6 @@ func (e *Doc) InitRouter(app *gin.Engine) {
 	group.POST("/create", middlewares.VerifyToken(), e.Create)
 	group.POST("/update", middlewares.VerifyToken(), e.Update)
 	group.POST("/delete", middlewares.VerifyToken(), e.Delete)
+	group.GET("/drafts", middlewares.VerifyToken(), e.GetDrafts)
+	group.PUT("/update_draft", middlewares.VerifyToken(), e.UpdateDraft)
 }
