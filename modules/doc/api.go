@@ -15,11 +15,11 @@ type CreatePayload struct {
 }
 
 type UpdatePayload struct {
-	DocID   string `json:"doc_id" binding:"required"`
-	Content string `json:"content" binding:"required"`
-	Title   string `json:"title"`
-	Cover   string `json:"cover"`
-	Public  *bool  `json:"public"`
+	DocID   string  `json:"doc_id" binding:"required"`
+	Content *string `json:"content"`
+	Title   *string `json:"title"`
+	Cover   *string `json:"cover"`
+	Public  *bool   `json:"public"`
 }
 
 type DeletePayload struct {

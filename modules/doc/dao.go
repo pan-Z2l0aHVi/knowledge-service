@@ -57,9 +57,9 @@ func (e *DocDAO) Create(
 func (e *DocDAO) Update(
 	ctx *gin.Context,
 	docID string,
-	title string,
-	content string,
-	cover string,
+	title *string,
+	content *string,
+	cover *string,
 	public *bool,
 ) (Doc, error) {
 	collection := e.GetDB().Collection("doc")
@@ -71,13 +71,13 @@ func (e *DocDAO) Update(
 	update := bson.D{{Key: "$set", Value: bson.D{
 		{Key: "update_time", Value: time.Now()},
 	}}}
-	if title != "" {
+	if title != nil {
 		update[0].Value = append(update[0].Value.(bson.D), bson.E{Key: "title", Value: title})
 	}
-	if content != "" {
+	if content != nil {
 		update[0].Value = append(update[0].Value.(bson.D), bson.E{Key: "content", Value: content})
 	}
-	if cover != "" {
+	if cover != nil {
 		update[0].Value = append(update[0].Value.(bson.D), bson.E{Key: "cover", Value: cover})
 	}
 	if public != nil {
