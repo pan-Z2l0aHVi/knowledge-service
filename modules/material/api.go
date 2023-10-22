@@ -26,5 +26,5 @@ type MaterialSearchQuery struct {
 
 type MaterialSearchResp struct {
 	List  []Material `json:"list"`
-	Total int64      `json:"total"`
+	Total int        `json:"total"`
 }

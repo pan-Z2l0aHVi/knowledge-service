@@ -32,6 +32,9 @@ func (e *User) GetProfile(ctx *gin.Context) {
 		userID = query.UserID
 	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
+	} else {
+		tools.RespFail(ctx, consts.FailCode, "当前用户不存在", nil)
+		return
 	}
 	dao := UserDAO{}
 	user, err := dao.FindByUserID(ctx, userID)
@@ -46,53 +49,59 @@ func (e *User) UpdateProfile(ctx *gin.Context) {
 
 }
 
-func (e *User) SignIn(ctx *gin.Context) {
-	var payload SignInPayload
+func (e *User) Login(ctx *gin.Context) {
+	var payload LoginPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
-	if payload.Type == TypeGithub {
-		tokenResp, err := getGitHubToken(payload.Code)
+	switch payload.Type {
+	case TypeGithub:
+		res, err := githubLogin(ctx, payload.Code)
 		if err != nil {
 			tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 			return
 		}
-		githubProfile, err := getGithubProfile(tokenResp.AccessToken)
-		if err != nil {
-			tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-			return
-		}
-		githubID := githubProfile.ID
-		dao := UserDAO{}
-		user, err := dao.FindByGithubID(ctx, githubID)
-		if err != nil {
-			createdUser, err := dao.Create(
-				ctx,
-				githubProfile.Name,
-				githubProfile.AvatarURL,
-				TypeGithub,
-				githubID,
-			)
-			if err != nil {
-				tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-				return
-			}
-			user = createdUser
-		}
-		token, err := tools.CreateToken(user.UserID.Hex())
-		if err != nil {
-			tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-			return
-		}
-		data := SignInRes{
-			User:  user,
-			Token: token,
-		}
-		tools.RespSuccess(ctx, data)
-		return
+		tools.RespSuccess(ctx, res)
+	default:
+		tools.RespFail(ctx, consts.FailCode, "未知登录类型", nil)
 	}
-	tools.RespFail(ctx, consts.FailCode, "未知登录类型", nil)
+}
+
+func githubLogin(ctx *gin.Context, code string) (LoginRes, error) {
+	tokenResp, err := getGitHubToken(code)
+	if err != nil {
+		return LoginRes{}, err
+	}
+	githubProfile, err := getGithubProfile(tokenResp.AccessToken)
+	if err != nil {
+		return LoginRes{}, err
+	}
+	githubID := githubProfile.ID
+	dao := UserDAO{}
+	user, err := dao.FindByGithubID(ctx, githubID)
+	if err != nil {
+		createdUser, err := dao.Create(
+			ctx,
+			githubProfile.Name,
+			githubProfile.AvatarURL,
+			TypeGithub,
+			githubID,
+		)
+		if err != nil {
+			return LoginRes{}, err
+		}
+		user = createdUser
+	}
+	token, err := tools.CreateToken(user.UserID.Hex())
+	if err != nil {
+		return LoginRes{}, err
+	}
+	res := LoginRes{
+		User:  user,
+		Token: token,
+	}
+	return res, nil
 }
 
 func getGitHubToken(code string) (GitHubTokenSuccessResp, error) {

@@ -33,3 +33,26 @@ func VerifyToken() gin.HandlerFunc {
 		ctx.Next()
 	}
 }
+
+func UseToken() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		tokenStr := ctx.GetHeader("Authorization")
+		if tokenStr == "" {
+			ctx.Next()
+			return
+		}
+		token, err := tools.ParseToken(tokenStr)
+		if err != nil {
+			ctx.Next()
+			return
+		}
+		if !token.Valid {
+			ctx.Next()
+			return
+		}
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			ctx.Set("uid", claims["uid"])
+		}
+		ctx.Next()
+	}
+}

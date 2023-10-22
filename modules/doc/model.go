@@ -10,6 +10,7 @@ type Doc struct {
 	ID           primitive.ObjectID `json:"doc_id" bson:"_id"`
 	Title        string             `json:"title" bson:"title"`
 	Content      string             `json:"content" bson:"content"`
+	Summary      string             `json:"summary" bson:"summary"`
 	AuthorID     string             `json:"author_id" bson:"author_id"`
 	Cover        string             `json:"cover" bson:"cover"`
 	Public       bool               `json:"public" bson:"public"`

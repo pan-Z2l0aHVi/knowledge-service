@@ -55,16 +55,11 @@ func (e *Material) Search(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
-	total, err := dao.SearchCount(ctx, query.Type, query.Keywords)
-	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-		return
-	}
 	if len(materialList) == 0 {
 		materialList = []Material{}
 	}
 	res := MaterialSearchResp{
-		Total: total,
+		Total: len(materialList),
 		List:  materialList,
 	}
 	tools.RespSuccess(ctx, res)

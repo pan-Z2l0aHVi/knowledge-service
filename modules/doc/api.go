@@ -17,6 +17,7 @@ type CreatePayload struct {
 type UpdatePayload struct {
 	DocID   string  `json:"doc_id" binding:"required"`
 	Content *string `json:"content"`
+	Summary *string `json:"summary"`
 	Title   *string `json:"title"`
 	Cover   *string `json:"cover"`
 	Public  *bool   `json:"public"`
@@ -26,14 +27,17 @@ type DeletePayload struct {
 	DocIDs []string `json:"doc_ids" binding:"required"`
 }
 
-type GetDocsQuery struct {
-	AuthorID string `form:"author_id"`
+type SearchDocsQuery struct {
 	Page     int    `form:"page" binding:"required"`
 	PageSize int    `form:"page_size" binding:"required"`
+	AuthorID string `form:"author_id"`
+	SortBy   string `form:"sort_by"`
+	SortType string `form:"sort_type"`
+	Keywords string `form:"keywords"`
 }
 
 type GetDocsResp struct {
-	Total int64 `json:"total"`
+	Total int   `json:"total"`
 	List  []Doc `json:"list"`
 }
 

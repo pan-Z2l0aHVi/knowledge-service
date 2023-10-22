@@ -19,7 +19,7 @@ func (e *MaterialDAO) Find(ctx *gin.Context, materialID string) (Material, error
 	if err != nil {
 		return Material{}, err
 	}
-	filter := bson.D{{Key: "_id", Value: objID}}
+	filter := bson.M{"_id": objID}
 	res := collection.FindOne(ctx, filter)
 	if err := res.Err(); err != nil {
 		return Material{}, err
@@ -40,16 +40,16 @@ func (e *MaterialDAO) Search(
 	pageSize int,
 ) ([]Material, error) {
 	collection := e.GetDB().Collection("material")
-	filter := bson.D{
-		{Key: "type", Value: material_type},
-		{Key: "name", Value: bson.D{
-			{Key: "$regex", Value: keywords},
-			{Key: "$options", Value: "i"},
-		}},
+	filter := bson.M{
+		"type": material_type,
+		"name": bson.M{
+			"$regex":   keywords,
+			"$options": "i",
+		},
 	}
 	skip := int64((page - 1) * pageSize)
 	limit := int64(pageSize)
-	sort := bson.D{{Key: "update_time", Value: -1}}
+	sort := bson.M{"update_time": -1}
 	cursor, err := collection.Find(ctx, filter, &options.FindOptions{
 		Skip:  &skip,
 		Limit: &limit,
@@ -67,18 +67,6 @@ func (e *MaterialDAO) Search(
 		materialList = []Material{}
 	}
 	return materialList, nil
-}
-
-func (e *MaterialDAO) SearchCount(ctx *gin.Context, material_type int, keywords string) (int64, error) {
-	collection := e.GetDB().Collection("material")
-	filter := bson.D{
-		{Key: "type", Value: material_type},
-		{Key: "name", Value: bson.D{
-			{Key: "$regex", Value: keywords},
-			{Key: "$options", Value: "i"},
-		}},
-	}
-	return collection.CountDocuments(ctx, filter)
 }
 
 func (e *MaterialDAO) Create(ctx *gin.Context, material_type int, url string) (Material, error) {

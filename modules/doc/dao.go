@@ -20,7 +20,7 @@ func (e *DocDAO) Find(ctx *gin.Context, docID string) (Doc, error) {
 	if err != nil {
 		return Doc{}, err
 	}
-	filter := bson.D{{Key: "_id", Value: objID}}
+	filter := bson.M{"_id": objID}
 	var docInfo Doc
 	if err := collection.FindOne(ctx, filter).Decode(&docInfo); err != nil {
 		return Doc{}, err
@@ -59,6 +59,7 @@ func (e *DocDAO) Update(
 	docID string,
 	title *string,
 	content *string,
+	summary *string,
 	cover *string,
 	public *bool,
 ) (Doc, error) {
@@ -67,21 +68,23 @@ func (e *DocDAO) Update(
 	if err != nil {
 		return Doc{}, err
 	}
-	filter := bson.D{{Key: "_id", Value: objID}}
-	update := bson.D{{Key: "$set", Value: bson.D{
-		{Key: "update_time", Value: time.Now()},
-	}}}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$set": bson.M{"update_time": time.Now()}}
+
 	if title != nil {
-		update[0].Value = append(update[0].Value.(bson.D), bson.E{Key: "title", Value: title})
+		update["$set"].(bson.M)["title"] = title
 	}
 	if content != nil {
-		update[0].Value = append(update[0].Value.(bson.D), bson.E{Key: "content", Value: content})
+		update["$set"].(bson.M)["content"] = content
+	}
+	if summary != nil {
+		update["$set"].(bson.M)["summary"] = summary
 	}
 	if cover != nil {
-		update[0].Value = append(update[0].Value.(bson.D), bson.E{Key: "cover", Value: cover})
+		update["$set"].(bson.M)["cover"] = cover
 	}
 	if public != nil {
-		update[0].Value = append(update[0].Value.(bson.D), bson.E{Key: "public", Value: *public})
+		update["$set"].(bson.M)["public"] = *public
 	}
 	var doc Doc
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
@@ -101,19 +104,38 @@ func (e *DocDAO) Delete(ctx *gin.Context, docIDs []string) error {
 		}
 		objIDs = append(objIDs, id)
 	}
-	filter := bson.D{{Key: "_id", Value: bson.M{"$in": objIDs}}}
+	filter := bson.M{"_id": bson.M{"$in": objIDs}}
 	if _, err := collection.DeleteMany(ctx, filter); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (e *DocDAO) FindDocsByAuthor(ctx *gin.Context, authorID string, page int, pageSize int) ([]Doc, error) {
+func (e *DocDAO) FindDocs(ctx *gin.Context,
+	page int,
+	pageSize int,
+	authorID string,
+	keywords string,
+	sortBy string,
+	asc int,
+) ([]Doc, error) {
 	collection := e.GetDB().Collection("doc")
-	filter := bson.D{{Key: "author_id", Value: authorID}}
+	filter := bson.M{}
+	if keywords != "" {
+		filter["$or"] = []bson.M{
+			{"title": bson.M{"$regex": keywords, "$options": "i"}},
+			{"summary": bson.M{"$regex": keywords, "$options": "i"}},
+		}
+	}
+	if authorID != "" {
+		filter["author_id"] = authorID
+	}
+	sort := bson.M{}
+	if sortBy != "" && asc != 0 {
+		sort[sortBy] = asc
+	}
 	skip := int64((page - 1) * pageSize)
 	limit := int64(pageSize)
-	sort := bson.D{{Key: "update_time", Value: -1}}
 	cursor, err := collection.Find(ctx, filter, &options.FindOptions{
 		Skip:  &skip,
 		Limit: &limit,
@@ -133,20 +155,14 @@ func (e *DocDAO) FindDocsByAuthor(ctx *gin.Context, authorID string, page int, p
 	return docs, nil
 }
 
-func (e *DocDAO) FindCountByAuthor(ctx *gin.Context, authorID string) (int64, error) {
-	collection := e.GetDB().Collection("doc")
-	filter := bson.D{{Key: "author_id", Value: authorID}}
-	return collection.CountDocuments(ctx, filter)
-}
-
 func (e *DocDAO) FindDraftsByDoc(ctx *gin.Context, docID string, page int, pageSize int) ([]Draft, error) {
 	collection := e.GetDB().Collection("doc")
 	objID, err := primitive.ObjectIDFromHex(docID)
 	if err != nil {
 		return []Draft{}, err
 	}
-	filter := bson.D{{Key: "_id", Value: objID}}
-	sort := bson.D{{Key: "creation_time", Value: -1}}
+	filter := bson.M{"_id": objID}
+	sort := bson.M{"creation_time": -1}
 	skip := int64((page - 1) * pageSize)
 	limit := int64(pageSize)
 	pipeline := []bson.M{
@@ -188,18 +204,18 @@ func (e *DocDAO) UpdateDraft(ctx *gin.Context, docID string, content string) (Dr
 	if err != nil {
 		return Draft{}, err
 	}
-	filter := bson.D{{Key: "_id", Value: objID}}
+	filter := bson.M{"_id": objID}
 	newDraft := Draft{
 		Content:      content,
 		CreationTime: time.Now(),
 	}
-	update := bson.D{
-		{Key: "$push", Value: bson.D{
-			{Key: "drafts", Value: bson.D{
-				{Key: "$each", Value: bson.A{newDraft}},
-				{Key: "$position", Value: 0},
-			}},
-		}},
+	update := bson.M{
+		"$push": bson.M{
+			"drafts": bson.M{
+				"$each":     bson.A{newDraft},
+				"$position": 0,
+			},
+		},
 	}
 	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
 		return Draft{}, err

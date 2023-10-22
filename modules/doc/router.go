@@ -10,7 +10,7 @@ func (e *Doc) InitRouter(app *gin.Engine) {
 	group := app.Group("doc")
 
 	group.GET("/info", e.GetInfo)
-	group.GET("/docs", middlewares.VerifyToken(), e.GetDocs)
+	group.GET("/docs", middlewares.UseToken(), e.SearchDocs)
 	group.POST("/create", middlewares.VerifyToken(), e.Create)
 	group.POST("/update", middlewares.VerifyToken(), e.Update)
 	group.POST("/delete", middlewares.VerifyToken(), e.Delete)

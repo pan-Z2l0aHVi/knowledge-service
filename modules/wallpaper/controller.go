@@ -59,8 +59,11 @@ func (e *Wallpaper) GetInfo(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
 	url := strings.Replace(decodedURL, "https://wallhaven.cc", WallhavenAPI, 1)
-	resp, err := http.Get(url)
+	resp, err := client.Get(url)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return

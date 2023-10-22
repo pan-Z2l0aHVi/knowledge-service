@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"knowledge-base-service/tools"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +18,7 @@ func (e *UserDAO) FindByUserID(ctx *gin.Context, userID string) (User, error) {
 	if err != nil {
 		return User{}, err
 	}
-	filter := bson.D{{Key: "_id", Value: objID}}
+	filter := bson.M{"_id": objID}
 	res := collection.FindOne(ctx, filter)
 	if err := res.Err(); err != nil {
 		return User{}, err
@@ -33,7 +32,7 @@ func (e *UserDAO) FindByUserID(ctx *gin.Context, userID string) (User, error) {
 
 func (e *UserDAO) FindByGithubID(ctx *gin.Context, githubID int) (User, error) {
 	collection := e.GetDB().Collection("user")
-	filter := bson.D{{Key: "github_id", Value: githubID}}
+	filter := bson.M{"github_id": githubID}
 	res := collection.FindOne(ctx, filter)
 	if err := res.Err(); err != nil {
 		return User{}, err
@@ -42,7 +41,6 @@ func (e *UserDAO) FindByGithubID(ctx *gin.Context, githubID int) (User, error) {
 	if err := res.Decode(&user); err != nil {
 		return User{}, err
 	}
-	fmt.Println("user", user)
 	return user, nil
 }
 

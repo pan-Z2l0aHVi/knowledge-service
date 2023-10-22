@@ -4,12 +4,12 @@ type GetProfileQuery struct {
 	UserID string `form:"user_id"`
 }
 
-type SignInPayload struct {
+type LoginPayload struct {
 	Type int    `json:"type" binding:"required"`
 	Code string `json:"code" binding:"required"`
 }
 
-type SignInRes struct {
+type LoginRes struct {
 	User
 	Token string `json:"token"`
 }

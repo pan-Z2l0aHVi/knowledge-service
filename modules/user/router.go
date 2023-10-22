@@ -12,5 +12,5 @@ func (e *User) InitRouter(app *gin.Engine) {
 	group.GET("/profile", middlewares.VerifyToken(), e.GetProfile)
 	group.POST("/profile", middlewares.VerifyToken(), e.UpdateProfile)
 
-	group.POST("/sign_in", e.SignIn)
+	group.POST("/sign_in", e.Login)
 }

@@ -62,6 +62,7 @@ func (e *Doc) Update(ctx *gin.Context) {
 		payload.DocID,
 		payload.Title,
 		payload.Content,
+		payload.Summary,
 		payload.Cover,
 		payload.Public,
 	)
@@ -87,8 +88,8 @@ func (e *Doc) Delete(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
-func (e *Doc) GetDocs(ctx *gin.Context) {
-	var query GetDocsQuery
+func (e *Doc) SearchDocs(ctx *gin.Context) {
+	var query SearchDocsQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
@@ -98,20 +99,31 @@ func (e *Doc) GetDocs(ctx *gin.Context) {
 		userID = query.AuthorID
 	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
-	}
-	dao := DocDAO{}
-	docs, err := dao.FindDocsByAuthor(ctx, userID, query.Page, query.PageSize)
-	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+	} else {
+		tools.RespFail(ctx, consts.FailCode, "当前用户不存在", nil)
 		return
 	}
-	count, err := dao.FindCountByAuthor(ctx, userID)
+	var asc int
+	if query.SortType == "desc" {
+		asc = -1
+	} else if query.SortType == "asc" {
+		asc = 1
+	}
+	dao := DocDAO{}
+	docs, err := dao.FindDocs(ctx,
+		query.Page,
+		query.PageSize,
+		userID,
+		query.Keywords,
+		query.SortBy,
+		asc,
+	)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	res := GetDocsResp{
-		Total: count,
+		Total: len(docs),
 		List:  docs,
 	}
 	tools.RespSuccess(ctx, res)
