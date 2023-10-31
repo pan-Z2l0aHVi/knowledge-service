@@ -2,6 +2,7 @@ package feed
 
 import (
 	"knowledge-base-service/tools"
+	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,9 +26,10 @@ func (e *FeedDao) FindFeedList(
 	collection := e.GetDB().Collection("doc")
 	filter := bson.M{"public": true}
 	if keywords != "" {
+		escapedKeyword := url.QueryEscape(keywords)
 		filter["$or"] = []bson.M{
-			{"title": bson.M{"$regex": keywords, "$options": "i"}},
-			{"summary": bson.M{"$regex": keywords, "$options": "i"}},
+			{"title": bson.M{"$regex": escapedKeyword, "$options": "i"}},
+			{"summary": bson.M{"$regex": escapedKeyword, "$options": "i"}},
 		}
 	}
 	sort := bson.M{}
