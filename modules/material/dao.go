@@ -2,7 +2,7 @@ package material
 
 import (
 	"knowledge-base-service/tools"
-	"net/url"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -44,7 +44,7 @@ func (e *MaterialDAO) Search(
 	filter := bson.M{
 		"type": material_type,
 		"name": bson.M{
-			"$regex":   url.QueryEscape(keywords),
+			"$regex":   regexp.QuoteMeta(keywords),
 			"$options": "i",
 		},
 	}

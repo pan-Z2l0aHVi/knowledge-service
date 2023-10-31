@@ -53,6 +53,7 @@ func (e *Feed) SearchFeedList(ctx *gin.Context) {
 		query.Keywords,
 		query.SortBy,
 		asc,
+		query.AuthorID,
 	)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)

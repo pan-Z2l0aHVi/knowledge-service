@@ -14,6 +14,7 @@ type SearchFeedsListQuery struct {
 	Keywords string `form:"keywords"`
 	SortBy   string `form:"sort_by"`
 	SortType string `form:"sort_type"`
+	AuthorID string `form:"author_id"`
 }
 
 type FeedListItem struct {
