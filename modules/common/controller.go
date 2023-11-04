@@ -43,7 +43,10 @@ func (e *Common) Report(ctx *gin.Context) {
 		obj["ua"] = ctx.Request.UserAgent()
 	}
 	dao := CommonDao{}
-	dao.insertReport(ctx, jsonData)
+	if err := dao.insertReport(ctx, jsonData); err != nil {
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		return
+	}
 	ctx.Status(http.StatusNoContent)
 }
 

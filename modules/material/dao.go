@@ -35,14 +35,14 @@ func (e *MaterialDAO) Find(ctx *gin.Context, materialID string) (Material, error
 
 func (e *MaterialDAO) Search(
 	ctx *gin.Context,
-	material_type int,
+	materialType int,
 	keywords string,
 	page int,
 	pageSize int,
 ) ([]Material, error) {
 	collection := e.GetDB().Collection("material")
 	filter := bson.M{
-		"type": material_type,
+		"type": materialType,
 		"name": bson.M{
 			"$regex":   regexp.QuoteMeta(keywords),
 			"$options": "i",
@@ -70,14 +70,17 @@ func (e *MaterialDAO) Search(
 	return materialList, nil
 }
 
-func (e *MaterialDAO) Create(ctx *gin.Context, material_type int, url string) (Material, error) {
+func (e *MaterialDAO) Create(ctx *gin.Context, materialType int, url string) (Material, error) {
 	collection := e.GetDB().Collection("material")
 	material := Material{
 		ID:         primitive.NewObjectID(),
 		URL:        url,
-		Type:       material_type,
+		Type:       materialType,
 		UploaderID: "",
 	}
-	collection.InsertOne(ctx, material)
+	_, err := collection.InsertOne(ctx, material)
+	if err != nil {
+		return Material{}, err
+	}
 	return material, nil
 }

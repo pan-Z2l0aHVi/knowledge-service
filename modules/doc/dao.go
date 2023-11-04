@@ -2,7 +2,7 @@ package doc
 
 import (
 	"knowledge-base-service/tools"
-	"net/url"
+	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -123,7 +123,7 @@ func (e *DocDAO) FindDocs(ctx *gin.Context,
 	collection := e.GetDB().Collection("doc")
 	filter := bson.M{}
 	if keywords != "" {
-		escapedKeyword := url.QueryEscape(keywords)
+		escapedKeyword := regexp.QuoteMeta(keywords)
 		filter["$or"] = []bson.M{
 			{"title": bson.M{"$regex": escapedKeyword, "$options": "i"}},
 			{"summary": bson.M{"$regex": escapedKeyword, "$options": "i"}},
