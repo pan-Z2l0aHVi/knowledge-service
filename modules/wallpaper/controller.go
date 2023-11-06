@@ -16,6 +16,7 @@ import (
 
 const (
 	WallhavenAPI = "https://wallhaven.cc/api/v1"
+	APIKey       = "UqZVHRvdgtBpMsiAVjkWVVPomVxoTkVF"
 )
 
 func (e *Wallpaper) Search(ctx *gin.Context) {
@@ -98,6 +99,7 @@ func chSearchWallpaper(ch chan<- SearchAPIRes, query SearchQuery, page int) {
 
 func searchWallpaper(query SearchQuery) (SearchResp, error) {
 	v := url.Values{}
+	v.Set("apikey", APIKey)
 	v.Set("q", query.Keywords)
 	v.Set("ai_art_filter", query.AIArtFilter)
 	v.Set("categories", query.Categories)
