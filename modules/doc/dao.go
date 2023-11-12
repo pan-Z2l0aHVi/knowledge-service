@@ -32,6 +32,7 @@ func (e *DocDAO) Find(ctx *gin.Context, docID string) (Doc, error) {
 func (e *DocDAO) Create(
 	ctx *gin.Context,
 	authorID string,
+	spaceID string,
 	title string,
 	content string,
 	cover string,
@@ -41,6 +42,7 @@ func (e *DocDAO) Create(
 	doc := Doc{
 		ID:           primitive.NewObjectID(),
 		AuthorID:     authorID,
+		SpaceID:      spaceID,
 		Title:        title,
 		Content:      content,
 		Cover:        cover,
@@ -116,6 +118,7 @@ func (e *DocDAO) FindDocs(ctx *gin.Context,
 	page int,
 	pageSize int,
 	authorID string,
+	spaceID string,
 	keywords string,
 	sortBy string,
 	asc int,
@@ -131,6 +134,9 @@ func (e *DocDAO) FindDocs(ctx *gin.Context,
 	}
 	if authorID != "" {
 		filter["author_id"] = authorID
+	}
+	if spaceID != "" {
+		filter["space_id"] = spaceID
 	}
 	sort := bson.M{}
 	if sortBy != "" && asc != 0 {

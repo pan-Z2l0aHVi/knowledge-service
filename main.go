@@ -6,6 +6,7 @@ import (
 	"knowledge-base-service/modules/doc"
 	"knowledge-base-service/modules/feed"
 	"knowledge-base-service/modules/material"
+	"knowledge-base-service/modules/space"
 	"knowledge-base-service/modules/user"
 	"knowledge-base-service/modules/wallpaper"
 	"knowledge-base-service/tools"
@@ -33,6 +34,7 @@ func main() {
 
 func registerRoutes(app *gin.Engine) {
 	new(doc.Doc).InitRouter(app)
+	new(space.Space).InitRouter(app)
 	new(wallpaper.Wallpaper).InitRouter(app)
 	new(material.Material).InitRouter(app)
 	new(user.User).InitRouter(app)

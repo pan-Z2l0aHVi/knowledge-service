@@ -1,4 +1,4 @@
-package doc
+package space
 
 import (
 	"knowledge-base-service/consts"
@@ -7,81 +7,76 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (e *Doc) GetInfo(ctx *gin.Context) {
+func (e *Space) GetInfo(ctx *gin.Context) {
 	var query GetInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
-	dao := DocDAO{}
-	docInfo, err := dao.Find(ctx, query.DocID)
+	dao := SpaceDAO{}
+	spaceInfo, err := dao.Find(ctx, query.SpaceID)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	res := GetInfoResp{
-		Doc: docInfo,
+		Space: spaceInfo,
 	}
 	tools.RespSuccess(ctx, res)
 }
 
-func (e *Doc) Create(ctx *gin.Context) {
+func (e *Space) Create(ctx *gin.Context) {
 	var payload CreatePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
-	var authorID string
+	var ownerID string
 	if userID, exist := ctx.Get("uid"); exist {
-		authorID = userID.(string)
+		ownerID = userID.(string)
 	}
-	dao := DocDAO{}
-	docInfo, err := dao.Create(
+	dao := SpaceDAO{}
+	spaceInfo, err := dao.Create(
 		ctx,
-		authorID,
-		payload.SpaceID,
-		payload.Title,
-		payload.Content,
-		payload.Cover,
+		ownerID,
+		payload.Name,
+		payload.Desc,
 	)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
-	tools.RespSuccess(ctx, docInfo)
+	tools.RespSuccess(ctx, spaceInfo)
 }
 
-func (e *Doc) Update(ctx *gin.Context) {
+func (e *Space) Update(ctx *gin.Context) {
 	var payload UpdatePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
-	dao := DocDAO{}
-	docInfo, err := dao.Update(
+	dao := SpaceDAO{}
+	spaceInfo, err := dao.Update(
 		ctx,
-		payload.DocID,
-		payload.Title,
-		payload.Content,
-		payload.Summary,
-		payload.Cover,
-		payload.Public,
+		payload.SpaceID,
+		payload.Name,
+		payload.Desc,
 	)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
-	tools.RespSuccess(ctx, docInfo)
+	tools.RespSuccess(ctx, spaceInfo)
 }
 
-func (e *Doc) Delete(ctx *gin.Context) {
+func (e *Space) Delete(ctx *gin.Context) {
 	var payload DeletePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
-	dao := DocDAO{}
-	err := dao.Delete(ctx, payload.DocIDs)
+	dao := SpaceDAO{}
+	err := dao.Delete(ctx, payload.SpaceIDs)
 	if err != nil {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
@@ -89,15 +84,15 @@ func (e *Doc) Delete(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
-func (e *Doc) SearchDocs(ctx *gin.Context) {
-	var query SearchDocsQuery
+func (e *Space) SearchSpaces(ctx *gin.Context) {
+	var query SearchSpacesQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
 	var userID string
-	if query.AuthorID != "" {
-		userID = query.AuthorID
+	if query.OwnerID != "" {
+		userID = query.OwnerID
 	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	} else {
@@ -110,12 +105,11 @@ func (e *Doc) SearchDocs(ctx *gin.Context) {
 	} else if query.SortType == "asc" {
 		asc = 1
 	}
-	dao := DocDAO{}
-	docs, err := dao.FindDocs(ctx,
+	dao := SpaceDAO{}
+	spaces, err := dao.FindSpaces(ctx,
 		query.Page,
 		query.PageSize,
 		userID,
-		query.SpaceID,
 		query.Keywords,
 		query.SortBy,
 		asc,
@@ -124,39 +118,9 @@ func (e *Doc) SearchDocs(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
-	res := GetDocsResp{
-		Total: len(docs),
-		List:  docs,
+	res := GetSpacesResp{
+		Total: len(spaces),
+		List:  spaces,
 	}
 	tools.RespSuccess(ctx, res)
-}
-
-func (e *Doc) GetDrafts(ctx *gin.Context) {
-	var query GetDraftQuery
-	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
-		return
-	}
-	dao := DocDAO{}
-	drafts, err := dao.FindDraftsByDoc(ctx, query.DocID, query.Page, query.PageSize)
-	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-		return
-	}
-	tools.RespSuccess(ctx, drafts)
-}
-
-func (e *Doc) UpdateDraft(ctx *gin.Context) {
-	var payload UpdateDraftPayload
-	if err := ctx.ShouldBindJSON(&payload); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
-		return
-	}
-	dao := DocDAO{}
-	draft, err := dao.UpdateDraft(ctx, payload.DocID, payload.Content)
-	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-		return
-	}
-	tools.RespSuccess(ctx, draft)
 }
