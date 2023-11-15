@@ -109,7 +109,7 @@ type GetYDLoginStatusResp struct {
 type WeChatUserInfo struct {
 	OpenID    string `json:"openId"`
 	Nickname  string `json:"nickName"`
-	Gender    int    `json:"gender"`
+	Gender    string `json:"gender"`
 	AvatarUrl string `json:"avatarUrl"`
 }
 

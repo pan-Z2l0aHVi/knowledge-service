@@ -229,12 +229,10 @@ func (e *User) GetYDLoginStatus(ctx *gin.Context) {
 		tools.RespSuccess(ctx, GetYDLoginStatusResp{
 			HasLogin: true,
 		})
-	} else if hasLogin == 0 {
+	} else {
 		tools.RespSuccess(ctx, GetYDLoginStatusResp{
 			HasLogin: false,
 		})
-	} else {
-		tools.RespFail(ctx, consts.FailCode, "凭证错误或已失效", nil)
 	}
 }
 

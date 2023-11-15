@@ -90,5 +90,12 @@ func (e *UserDAO) SetTempUserID(tempUserID string, hasLogin int) error {
 
 func (e *UserDAO) GetTempUserIDLoginStatus(tempUserID string) (int, error) {
 	rds := e.GetRDS()
-	return rds.Get(tempUserID).Int()
+	res, err := rds.Get(tempUserID).Int()
+	if res == 0 {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return res, err
 }
