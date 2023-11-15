@@ -12,6 +12,7 @@ type Configure struct {
 	Host     string            `json:"host"`
 	Port     string            `json:"port"`
 	Database DatabaseConfigure `json:"database"`
+	Redis    RedisConfigure    `json:"redis"`
 }
 
 type DatabaseConfigure struct {
@@ -20,6 +21,12 @@ type DatabaseConfigure struct {
 	User string `json:"user"`
 	Pwd  string `json:"pwd"`
 	Name string `json:"name"`
+}
+
+type RedisConfigure struct {
+	Host string `json:"host"`
+	Port string `json:"port"`
+	Pwd  string `json:"pwd"`
 }
 
 var _cfg *Configure

@@ -10,6 +10,7 @@ import (
 
 type UserDAO struct {
 	*tools.Mongo
+	*tools.Redis
 }
 
 func (e *UserDAO) FindByUserID(ctx *gin.Context, userID string) (User, error) {
@@ -44,12 +45,27 @@ func (e *UserDAO) FindByGithubID(ctx *gin.Context, githubID int) (User, error) {
 	return user, nil
 }
 
+func (e *UserDAO) FindByWeChatID(ctx *gin.Context, wechatID string) (User, error) {
+	collection := e.GetDB().Collection("user")
+	filter := bson.M{"wechat_id": wechatID}
+	res := collection.FindOne(ctx, filter)
+	if err := res.Err(); err != nil {
+		return User{}, err
+	}
+	var user User
+	if err := res.Decode(&user); err != nil {
+		return User{}, err
+	}
+	return user, nil
+}
+
 func (e *UserDAO) Create(
 	ctx *gin.Context,
 	nickname string,
 	avatar string,
 	associated int,
 	githubID int,
+	wechatID string,
 ) (User, error) {
 	collection := e.GetDB().Collection("user")
 	user := User{
@@ -58,10 +74,21 @@ func (e *UserDAO) Create(
 		Avatar:     avatar,
 		Associated: associated,
 		GithubID:   githubID,
+		WeChatID:   wechatID,
 	}
 	_, err := collection.InsertOne(ctx, user)
 	if err != nil {
 		return User{}, err
 	}
 	return user, nil
+}
+
+func (e *UserDAO) SetTempUserID(tempUserID string, hasLogin int) error {
+	rds := e.GetRDS()
+	return rds.Set(tempUserID, hasLogin, 300).Err()
+}
+
+func (e *UserDAO) GetTempUserIDLoginStatus(tempUserID string) (int, error) {
+	rds := e.GetRDS()
+	return rds.Get(tempUserID).Int()
 }

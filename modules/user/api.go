@@ -83,3 +83,39 @@ type GithubProfileResp struct {
 		Collaborators int    `json:"collaborators"`
 	} `json:"plan"`
 }
+
+type YDWechatQRCodeResp struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Data struct {
+		QRURL      string `json:"qrUrl"`
+		TempUserID string `json:"tempUserId"`
+	} `json:"data"`
+}
+
+type GetYDQRCodeResp struct {
+	QRCodeURL  string `json:"qrcode_url"`
+	TempUserID string `json:"temp_user_id"`
+}
+
+type GetYDLoginStatusQuery struct {
+	TempUserID string `form:"temp_user_id" binding:"required"`
+}
+
+type GetYDLoginStatusResp struct {
+	HasLogin bool `json:"has_login"`
+}
+
+type WeChatUserInfo struct {
+	OpenID    string `json:"openId"`
+	Nickname  string `json:"nickName"`
+	Gender    int    `json:"gender"`
+	AvatarUrl string `json:"avatarUrl"`
+}
+
+type YDCallbackPayload struct {
+	TempUserId   string         `json:"tempUserId" binding:"required"`
+	ScanSuccess  bool           `json:"scanSuccess"`
+	CancelLogin  bool           `json:"cancelLogin"`
+	WxMaUserInfo WeChatUserInfo `json:"wxMaUserInfo"`
+}

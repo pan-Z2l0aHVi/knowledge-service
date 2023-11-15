@@ -24,6 +24,9 @@ func main() {
 
 	var mongo *tools.Mongo
 	mongo.InitDB()
+	var redis *tools.Redis
+	redis.InitRedis()
+
 	registerRoutes(app)
 
 	addr := cfg.Host + ":" + cfg.Port

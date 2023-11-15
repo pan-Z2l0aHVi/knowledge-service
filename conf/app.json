@@ -9,5 +9,10 @@
         "user": "admin",
         "pwd": "11568171",
         "name": "knowledge-base"
+    },
+    "redis": {
+        "host": "youknown.cc",
+        "port": "6379",
+        "pwd": "11568171"
     }
 }
