@@ -2,6 +2,7 @@ package user
 
 import (
 	"knowledge-base-service/tools"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -85,7 +86,7 @@ func (e *UserDAO) Create(
 
 func (e *UserDAO) SetTempUserID(tempUserID string, hasLogin int) error {
 	rds := e.GetRDS()
-	return rds.Set(tempUserID, hasLogin, 300).Err()
+	return rds.Set(tempUserID, hasLogin, 300*time.Second).Err()
 }
 
 func (e *UserDAO) GetTempUserIDLoginStatus(tempUserID string) (int, error) {
