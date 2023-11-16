@@ -60,27 +60,48 @@ func (e *User) Login(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
 		return
 	}
+	var user User
 	switch payload.Type {
 	case TypeGithub:
-		res, err := githubLogin(ctx, payload.Code)
+		userInfo, err := githubLogin(ctx, payload.Code)
 		if err != nil {
 			tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 			return
 		}
-		tools.RespSuccess(ctx, res)
+		user = userInfo
+
+	case TypeWechat:
+		userInfo, err := wechatLogin(ctx, payload.Code)
+		if err != nil {
+			tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+			return
+		}
+		user = userInfo
+
 	default:
 		tools.RespFail(ctx, consts.FailCode, "未知登录类型", nil)
+		return
 	}
+	token, err := tools.CreateToken(user.UserID.Hex())
+	if err != nil {
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		return
+	}
+	res := LoginRes{
+		User:  user,
+		Token: token,
+	}
+	tools.RespSuccess(ctx, res)
 }
 
-func githubLogin(ctx *gin.Context, code string) (LoginRes, error) {
+func githubLogin(ctx *gin.Context, code string) (User, error) {
 	tokenResp, err := getGitHubToken(code)
 	if err != nil {
-		return LoginRes{}, err
+		return User{}, err
 	}
 	githubProfile, err := getGithubProfile(tokenResp.AccessToken)
 	if err != nil {
-		return LoginRes{}, err
+		return User{}, err
 	}
 	githubID := githubProfile.ID
 	dao := UserDAO{}
@@ -95,19 +116,11 @@ func githubLogin(ctx *gin.Context, code string) (LoginRes, error) {
 			"",
 		)
 		if err != nil {
-			return LoginRes{}, err
+			return User{}, err
 		}
 		user = createdUser
 	}
-	token, err := tools.CreateToken(user.UserID.Hex())
-	if err != nil {
-		return LoginRes{}, err
-	}
-	res := LoginRes{
-		User:  user,
-		Token: token,
-	}
-	return res, nil
+	return user, nil
 }
 
 func getGitHubToken(code string) (GitHubTokenSuccessResp, error) {
@@ -205,7 +218,7 @@ func (e *User) GetYDQRCode(ctx *gin.Context) {
 		return
 	}
 	dao := UserDAO{}
-	dao.SetTempUserID(result.Data.TempUserID, 0)
+	dao.SetTempUserID(result.Data.TempUserID, WeChatUserInfo{})
 	res := GetYDQRCodeResp{
 		TempUserID: result.Data.TempUserID,
 		QRCodeURL:  result.Data.QRURL,
@@ -220,32 +233,22 @@ func (e *User) GetYDLoginStatus(ctx *gin.Context) {
 		return
 	}
 	dao := UserDAO{}
-	hasLogin, err := dao.GetTempUserIDLoginStatus(query.TempUserID)
+	userInfo, err := dao.GetTempUserIDUserInfo(query.TempUserID)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-		return
-	}
-	if hasLogin == 1 {
-		tools.RespSuccess(ctx, GetYDLoginStatusResp{
-			HasLogin: true,
-		})
-	} else {
 		tools.RespSuccess(ctx, GetYDLoginStatusResp{
 			HasLogin: false,
 		})
+		return
 	}
+	tools.RespSuccess(ctx, GetYDLoginStatusResp{
+		HasLogin: userInfo.OpenID != "",
+	})
 }
 
 func (e *User) YDCallback(ctx *gin.Context) {
 	var payload YDCallbackPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
-		return
-	}
-	dao := UserDAO{}
-	_, err := dao.GetTempUserIDLoginStatus(payload.TempUserId)
-	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
 		return
 	}
 	if payload.ScanSuccess {
@@ -257,49 +260,37 @@ func (e *User) YDCallback(ctx *gin.Context) {
 		return
 	}
 	fmt.Println("登录成功回调payload", payload)
-	res, err := wechatLogin(
-		ctx,
-		payload.WxMaUserInfo.OpenID,
-		payload.WxMaUserInfo.Nickname,
-		payload.WxMaUserInfo.AvatarUrl,
-	)
-	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
-		return
-	}
-	dao.SetTempUserID(payload.TempUserId, 1)
-	tools.RespSuccess(ctx, res)
+	dao := UserDAO{}
+	dao.SetTempUserID(payload.TempUserId, payload.WxMaUserInfo)
+	tools.RespSuccess(ctx, nil)
 }
 
 func wechatLogin(
 	ctx *gin.Context,
-	wechatID string,
-	nickname string,
-	avatar string,
-) (LoginRes, error) {
+	code string,
+) (User, error) {
 	dao := UserDAO{}
-	user, err := dao.FindByWeChatID(ctx, wechatID)
+	userInfo, err := dao.GetTempUserIDUserInfo(code)
+	if err != nil {
+		return User{}, err
+	}
+	if userInfo.OpenID == "" {
+		return User{}, err
+	}
+	user, err := dao.FindByWeChatID(ctx, userInfo.OpenID)
 	if err != nil {
 		createdUser, err := dao.Create(
 			ctx,
-			nickname,
-			avatar,
+			userInfo.Nickname,
+			userInfo.AvatarUrl,
 			TypeWechat,
 			0,
-			wechatID,
+			userInfo.OpenID,
 		)
 		if err != nil {
-			return LoginRes{}, err
+			return User{}, err
 		}
 		user = createdUser
 	}
-	token, err := tools.CreateToken(user.UserID.Hex())
-	if err != nil {
-		return LoginRes{}, err
-	}
-	res := LoginRes{
-		User:  user,
-		Token: token,
-	}
-	return res, nil
+	return user, nil
 }

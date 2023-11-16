@@ -1,10 +1,12 @@
 package user
 
 import (
+	"encoding/json"
 	"knowledge-base-service/tools"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -84,19 +86,27 @@ func (e *UserDAO) Create(
 	return user, nil
 }
 
-func (e *UserDAO) SetTempUserID(tempUserID string, hasLogin int) error {
+func (e *UserDAO) SetTempUserID(tempUserID string, userInfo WeChatUserInfo) error {
+	userJSON, err := json.Marshal(userInfo)
+	if err != nil {
+		return err
+	}
 	rds := e.GetRDS()
-	return rds.Set(tempUserID, hasLogin, 300*time.Second).Err()
+	return rds.Set(tempUserID, userJSON, 300*time.Second).Err()
 }
 
-func (e *UserDAO) GetTempUserIDLoginStatus(tempUserID string) (int, error) {
+func (e *UserDAO) GetTempUserIDUserInfo(tempUserID string) (WeChatUserInfo, error) {
 	rds := e.GetRDS()
-	res, err := rds.Get(tempUserID).Int()
-	if res == 0 {
-		return 0, nil
+	resJSON, err := rds.Get(tempUserID).Result()
+	if err == redis.Nil {
+		return WeChatUserInfo{}, err
+	} else if err != nil {
+		return WeChatUserInfo{}, err
 	}
+	var userInfo WeChatUserInfo
+	err = json.Unmarshal([]byte(resJSON), &userInfo)
 	if err != nil {
-		return 0, err
+		return WeChatUserInfo{}, err
 	}
-	return res, err
+	return userInfo, err
 }
