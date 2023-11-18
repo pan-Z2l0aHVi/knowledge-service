@@ -72,12 +72,13 @@ func (e *UserDAO) Create(
 ) (User, error) {
 	collection := e.GetDB().Collection("user")
 	user := User{
-		UserID:     primitive.NewObjectID(),
-		Nickname:   nickname,
-		Avatar:     avatar,
-		Associated: associated,
-		GithubID:   githubID,
-		WeChatID:   wechatID,
+		UserID:       primitive.NewObjectID(),
+		Nickname:     nickname,
+		Avatar:       avatar,
+		Associated:   associated,
+		GithubID:     githubID,
+		WeChatID:     wechatID,
+		CreationTime: time.Now(),
 	}
 	_, err := collection.InsertOne(ctx, user)
 	if err != nil {
