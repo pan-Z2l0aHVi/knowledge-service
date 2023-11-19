@@ -14,4 +14,5 @@ type User struct {
 	Nickname     string             `json:"nickname" bson:"nickname"`
 	Avatar       string             `json:"avatar" bson:"avatar"`
 	CreationTime time.Time          `json:"creation_time" bson:"creation_time"`
+	UpdateTime   time.Time          `json:"update_time" bson:"update_time"`
 }

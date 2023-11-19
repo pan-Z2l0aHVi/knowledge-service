@@ -4,6 +4,11 @@ type GetProfileQuery struct {
 	UserID string `form:"user_id"`
 }
 
+type UpdateProfilePayload struct {
+	Nickname *string `json:"nickname"`
+	Avatar   *string `json:"avatar"`
+}
+
 type LoginPayload struct {
 	Type int    `json:"type" binding:"required"`
 	Code string `json:"code" binding:"required"`

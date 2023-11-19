@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserDAO struct {
@@ -79,9 +80,33 @@ func (e *UserDAO) Create(
 		GithubID:     githubID,
 		WeChatID:     wechatID,
 		CreationTime: time.Now(),
+		UpdateTime:   time.Now(),
 	}
 	_, err := collection.InsertOne(ctx, user)
 	if err != nil {
+		return User{}, err
+	}
+	return user, nil
+}
+
+func (e *UserDAO) Update(ctx *gin.Context, userID string, nickname *string, avatar *string) (User, error) {
+	collection := e.GetDB().Collection("user")
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return User{}, err
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$set": bson.M{"update_time": time.Now()}}
+
+	if nickname != nil {
+		update["$set"].(bson.M)["nickname"] = nickname
+	}
+	if avatar != nil {
+		update["$set"].(bson.M)["avatar"] = avatar
+	}
+	var user User
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	if err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&user); err != nil {
 		return User{}, err
 	}
 	return user, nil

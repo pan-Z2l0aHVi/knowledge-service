@@ -51,7 +51,25 @@ func (e *User) GetProfile(ctx *gin.Context) {
 }
 
 func (e *User) UpdateProfile(ctx *gin.Context) {
-
+	var payload UpdateProfilePayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		return
+	}
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	} else {
+		tools.RespFail(ctx, consts.FailCode, "当前用户不存在", nil)
+		return
+	}
+	dao := UserDAO{}
+	user, err := dao.Update(ctx, userID, payload.Nickname, payload.Avatar)
+	if err != nil {
+		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, user)
 }
 
 func (e *User) Login(ctx *gin.Context) {
