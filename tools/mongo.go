@@ -13,7 +13,7 @@ type Mongo struct {
 }
 
 func (e *Mongo) InitDB() {
-	cfg, err := ParseConfigure("./conf/app.json")
+	cfg, err := ParseConfigure()
 	if err != nil {
 		panic(err)
 	}

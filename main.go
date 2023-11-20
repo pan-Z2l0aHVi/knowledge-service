@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	cfg, err := tools.ParseConfigure("./conf/app.json")
+	cfg, err := tools.ParseConfigure()
 	if err != nil {
 		panic(err)
 	}

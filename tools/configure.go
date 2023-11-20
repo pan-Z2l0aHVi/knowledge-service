@@ -3,6 +3,7 @@ package tools
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -31,7 +32,16 @@ type RedisConfigure struct {
 
 var _cfg *Configure
 
-func ParseConfigure(path string) (*Configure, error) {
+func ParseConfigure() (*Configure, error) {
+	env := os.Getenv("ENV")
+	fmt.Println("ENV", env)
+	var path string
+	switch env {
+	case "local":
+		path = "./conf/app_local.json"
+	default:
+		path = "./conf/app_prd.json"
+	}
 	file, err := os.Open((path))
 	if err != nil {
 		panic(err)

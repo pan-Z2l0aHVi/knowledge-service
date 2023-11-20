@@ -12,7 +12,7 @@ type Redis struct {
 }
 
 func (e *Redis) InitRedis() {
-	cfg, err := ParseConfigure("./conf/app.json")
+	cfg, err := ParseConfigure()
 	if err != nil {
 		panic(err)
 	}
