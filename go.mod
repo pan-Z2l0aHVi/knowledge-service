@@ -1,4 +1,4 @@
-module knowledge-base-service
+module knowledge-service
 
 go 1.18
 

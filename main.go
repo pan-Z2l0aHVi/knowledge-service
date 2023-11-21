@@ -1,15 +1,9 @@
 package main
 
 import (
-	"knowledge-base-service/middlewares"
-	"knowledge-base-service/modules/common"
-	"knowledge-base-service/modules/doc"
-	"knowledge-base-service/modules/feed"
-	"knowledge-base-service/modules/material"
-	"knowledge-base-service/modules/space"
-	"knowledge-base-service/modules/user"
-	"knowledge-base-service/modules/wallpaper"
-	"knowledge-base-service/tools"
+	"knowledge-service/internal/router"
+	"knowledge-service/middleware"
+	"knowledge-service/pkg/tools"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +14,7 @@ func main() {
 		panic(err)
 	}
 	app := gin.Default()
-	app.Use(middlewares.CORS())
+	app.Use(middleware.CORS())
 
 	var mongo *tools.Mongo
 	mongo.InitDB()
@@ -36,11 +30,11 @@ func main() {
 }
 
 func registerRoutes(app *gin.Engine) {
-	new(doc.Doc).InitRouter(app)
-	new(space.Space).InitRouter(app)
-	new(wallpaper.Wallpaper).InitRouter(app)
-	new(material.Material).InitRouter(app)
-	new(user.User).InitRouter(app)
-	new(feed.Feed).InitRouter(app)
-	new(common.Common).InitRouter(app)
+	router.InitCommonRouter(app)
+	router.InitUserRouter(app)
+	router.InitRDocRouter(app)
+	router.InitFeedRouter(app)
+	router.InitSpaceRouter(app)
+	router.InitWallpaperRouter(app)
+	router.InitMaterialRouter(app)
 }
