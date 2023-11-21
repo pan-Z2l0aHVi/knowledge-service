@@ -14,18 +14,18 @@ type FeedController struct{}
 func (e *FeedController) GetDetail(ctx *gin.Context) {
 	var query api.GetFeedDetailQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	feedD := dao.FeedDao{}
 	feed, err := feedD.FindFeed(ctx, query.FeedID)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	author, err := feedD.FindAuthorByID(ctx, feed.AuthorID)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	res := api.GetFeedDetailResp{
@@ -40,7 +40,7 @@ func (e *FeedController) GetDetail(ctx *gin.Context) {
 func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 	var query api.SearchFeedsListQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	var asc int
@@ -60,14 +60,14 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 		query.AuthorID,
 	)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	list := make([]api.FeedItem, len(feedList))
 	for i, item := range feedList {
 		author, err := feedD.FindAuthorByID(ctx, item.AuthorID)
 		if err != nil {
-			tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 			return
 		}
 		list[i] = api.FeedItem{
@@ -85,20 +85,20 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 func (e *FeedController) PraiseFeed(ctx *gin.Context) {
 	var payload api.PraiseFeedPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	var userID string
 	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	} else {
-		tools.RespFail(ctx, consts.FailCode, "当前用户不存在", nil)
+		tools.RespFail(ctx, consts.Fail, "当前用户不存在", nil)
 		return
 	}
 	feedD := dao.FeedDao{}
 	liked, err := feedD.CheckLiked(ctx, userID, payload.FeedID)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	switch payload.Event {
@@ -106,7 +106,7 @@ func (e *FeedController) PraiseFeed(ctx *gin.Context) {
 		if !liked {
 			err := feedD.Like(ctx, userID, payload.FeedID)
 			if err != nil {
-				tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 				return
 			}
 		}
@@ -117,7 +117,7 @@ func (e *FeedController) PraiseFeed(ctx *gin.Context) {
 		if liked {
 			err := feedD.UnLike(ctx, userID, payload.FeedID)
 			if err != nil {
-				tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 				return
 			}
 		}
@@ -125,6 +125,6 @@ func (e *FeedController) PraiseFeed(ctx *gin.Context) {
 		return
 
 	default:
-		tools.RespFail(ctx, consts.FailCode, "参数错误，event:"+payload.Event, nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误，event:"+payload.Event, nil)
 	}
 }

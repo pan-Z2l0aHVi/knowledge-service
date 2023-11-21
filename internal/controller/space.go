@@ -14,13 +14,13 @@ type SpaceController struct{}
 func (e *SpaceController) GetInfo(ctx *gin.Context) {
 	var query api.GetSpaceInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	spaceD := dao.SpaceDAO{}
 	spaceInfo, err := spaceD.Find(ctx, query.SpaceID)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	res := api.GetSpaceInfoResp{
@@ -32,7 +32,7 @@ func (e *SpaceController) GetInfo(ctx *gin.Context) {
 func (e *SpaceController) Create(ctx *gin.Context) {
 	var payload api.CreateSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	var ownerID string
@@ -47,7 +47,7 @@ func (e *SpaceController) Create(ctx *gin.Context) {
 		payload.Desc,
 	)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	tools.RespSuccess(ctx, spaceInfo)
@@ -56,7 +56,7 @@ func (e *SpaceController) Create(ctx *gin.Context) {
 func (e *SpaceController) Update(ctx *gin.Context) {
 	var payload api.UpdateSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	spaceD := dao.SpaceDAO{}
@@ -67,7 +67,7 @@ func (e *SpaceController) Update(ctx *gin.Context) {
 		payload.Desc,
 	)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	tools.RespSuccess(ctx, spaceInfo)
@@ -76,13 +76,13 @@ func (e *SpaceController) Update(ctx *gin.Context) {
 func (e *SpaceController) Delete(ctx *gin.Context) {
 	var payload api.DeleteSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	spaceD := dao.SpaceDAO{}
 	err := spaceD.Delete(ctx, payload.SpaceIDs)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	tools.RespSuccess(ctx, nil)
@@ -91,7 +91,7 @@ func (e *SpaceController) Delete(ctx *gin.Context) {
 func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 	var query api.SearchSpacesQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	var userID string
@@ -100,7 +100,7 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	} else {
-		tools.RespFail(ctx, consts.FailCode, "当前用户不存在", nil)
+		tools.RespFail(ctx, consts.Fail, "当前用户不存在", nil)
 		return
 	}
 	var asc int
@@ -119,7 +119,7 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 		asc,
 	)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	res := api.GetSpacesResp{

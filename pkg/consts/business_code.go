@@ -1,7 +1,7 @@
 package consts
 
 const (
-	SuccessCode  = 0
-	FailCode     = 1
+	Success      = 0
+	Fail         = 1
 	InvalidToken = 2
 )

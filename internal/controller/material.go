@@ -15,13 +15,13 @@ type MaterialController struct{}
 func (e *MaterialController) GetInfo(ctx *gin.Context) {
 	var query api.GetMaterialInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	materialD := dao.MaterialDAO{}
 	materialInfo, err := materialD.Find(ctx, query.MaterialID)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	res := api.GetMaterialInfoResp{
@@ -33,13 +33,13 @@ func (e *MaterialController) GetInfo(ctx *gin.Context) {
 func (e *MaterialController) Upload(ctx *gin.Context) {
 	var payload api.UploadMaterialPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	materialD := dao.MaterialDAO{}
 	materialInfo, err := materialD.Create(ctx, payload.Type, payload.URL)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	res := api.UploadMaterialResp{
@@ -51,13 +51,13 @@ func (e *MaterialController) Upload(ctx *gin.Context) {
 func (e *MaterialController) Search(ctx *gin.Context) {
 	var query api.SearchMaterialQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, consts.FailCode, "参数错误:"+err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	materialD := dao.MaterialDAO{}
 	materialList, err := materialD.Search(ctx, query.Type, query.Keywords, query.Page, query.PageSize)
 	if err != nil {
-		tools.RespFail(ctx, consts.FailCode, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	if len(materialList) == 0 {

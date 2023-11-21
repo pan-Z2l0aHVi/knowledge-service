@@ -9,7 +9,7 @@ import (
 
 func RespSuccess(ctx *gin.Context, val interface{}) {
 	ctx.JSON(http.StatusOK, map[string]interface{}{
-		"code": consts.SuccessCode,
+		"code": consts.Success,
 		"msg":  "成功",
 		"data": val,
 	})
