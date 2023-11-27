@@ -99,9 +99,6 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 		userID = query.OwnerID
 	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
-	} else {
-		tools.RespFail(ctx, consts.Fail, "当前用户不存在", nil)
-		return
 	}
 	var asc int
 	if query.SortType == "desc" {

@@ -21,12 +21,17 @@ type GetWallpaperInfoQuery struct {
 	URL string `form:"url" binding:"required"`
 }
 
+type WallpaperItem struct {
+	model.Wallpaper
+	Collected bool `json:"collected"`
+}
+
 type SearchWallpaperResp struct {
-	Data []model.Wallpaper `json:"data"`
+	Data []WallpaperItem `json:"data"`
 }
 
 type GetWallpaperInfoResp struct {
-	Data model.Wallpaper `json:"data"`
+	Data WallpaperItem `json:"data"`
 }
 
 type SearchWallpaperAPIRes struct {

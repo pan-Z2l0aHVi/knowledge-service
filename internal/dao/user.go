@@ -34,6 +34,15 @@ func (e *UserDAO) FindByUserID(ctx *gin.Context, userID string) (model.User, err
 	if err := res.Decode(&user); err != nil {
 		return model.User{}, err
 	}
+	if user.FollowedUserIDs == nil {
+		user.FollowedUserIDs = []string{}
+	}
+	if user.CollectedFeedIDs == nil {
+		user.CollectedFeedIDs = []string{}
+	}
+	if user.CollectedWallpapers == nil {
+		user.CollectedWallpapers = []model.Wallpaper{}
+	}
 	return user, nil
 }
 
@@ -137,4 +146,103 @@ func (e *UserDAO) GetTempUserIDUserInfo(tempUserID string) (api.WeChatUserInfo, 
 		return api.WeChatUserInfo{}, err
 	}
 	return userInfo, err
+}
+
+func (e *UserDAO) AddFeedIDToCollection(ctx *gin.Context, userID string, feedID string) error {
+	collection := e.GetDB().Collection("user")
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$push": bson.M{"collected_feed_ids": feedID}}
+	collection.UpdateOne(ctx, filter, update)
+	return nil
+}
+
+func (e *UserDAO) RemoveFeedIDFromCollection(ctx *gin.Context, userID string, feedID string) error {
+	collection := e.GetDB().Collection("user")
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$pull": bson.M{"collected_feed_ids": feedID}}
+	collection.UpdateOne(ctx, filter, update)
+	return nil
+}
+
+func (e *UserDAO) FindCollectedFeedIDs(ctx *gin.Context, userID string) ([]string, error) {
+	user, err := e.FindByUserID(ctx, userID)
+	if err != nil {
+		return []string{}, err
+	}
+	return user.CollectedFeedIDs, nil
+}
+
+func (e *UserDAO) AddFollowedUserID(ctx *gin.Context, userID string, targetUserID string) error {
+	collection := e.GetDB().Collection("user")
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$push": bson.M{"followed_user_ids": targetUserID}}
+	collection.UpdateOne(ctx, filter, update)
+	return nil
+}
+
+func (e *UserDAO) RemoveFollowedUserID(ctx *gin.Context, userID string, targetUserID string) error {
+	collection := e.GetDB().Collection("user")
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$pull": bson.M{"followed_user_ids": targetUserID}}
+	collection.UpdateOne(ctx, filter, update)
+	return nil
+}
+
+func (e *UserDAO) FindFollowedUserIDs(ctx *gin.Context, userID string) ([]string, error) {
+	user, err := e.FindByUserID(ctx, userID)
+	if err != nil {
+		return []string{}, err
+	}
+	return user.FollowedUserIDs, nil
+}
+
+func (e *UserDAO) AddWallpaperToCollection(ctx *gin.Context, userID string, wallpaper model.Wallpaper) error {
+	collection := e.GetDB().Collection("user")
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$push": bson.M{"collected_wallpapers": wallpaper}}
+	collection.UpdateOne(ctx, filter, update)
+	return nil
+}
+
+func (e *UserDAO) RemoveWallpaperFromCollection(ctx *gin.Context, userID string, wallpaperID string) error {
+	collection := e.GetDB().Collection("user")
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$pull": bson.M{"collected_wallpapers": bson.M{"id": wallpaperID}}}
+	collection.UpdateOne(ctx, filter, update)
+	return nil
+}
+
+func (e *UserDAO) FindCollectedWallpapers(ctx *gin.Context, userID string) ([]model.Wallpaper, error) {
+	user, err := e.FindByUserID(ctx, userID)
+	if err != nil {
+		return []model.Wallpaper{}, err
+	}
+	if len(user.CollectedWallpapers) == 0 {
+		return []model.Wallpaper{}, nil
+	}
+	return user.CollectedWallpapers, nil
 }

@@ -20,19 +20,9 @@ import (
 type UserController struct{}
 
 func (e *UserController) GetProfile(ctx *gin.Context) {
-	var query api.GetProfileQuery
-	if err := ctx.ShouldBindQuery(&query); err != nil {
-		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
-		return
-	}
 	var userID string
-	if query.UserID != "" {
-		userID = query.UserID
-	} else if uid, exist := ctx.Get("uid"); exist {
+	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
-	} else {
-		tools.RespFail(ctx, consts.Fail, "当前用户不存在", nil)
-		return
 	}
 	userD := dao.UserDAO{}
 	user, err := userD.FindByUserID(ctx, userID)
@@ -40,7 +30,17 @@ func (e *UserController) GetProfile(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	tools.RespSuccess(ctx, user)
+	res := api.Profile{
+		UserID:       user.UserID.Hex(),
+		Associated:   user.Associated,
+		GithubID:     user.GithubID,
+		WeChatID:     user.WeChatID,
+		Nickname:     user.Nickname,
+		Avatar:       user.Avatar,
+		CreationTime: user.CreationTime,
+		UpdateTime:   user.UpdateTime,
+	}
+	tools.RespSuccess(ctx, res)
 }
 
 func (e *UserController) UpdateProfile(ctx *gin.Context) {
@@ -52,9 +52,6 @@ func (e *UserController) UpdateProfile(ctx *gin.Context) {
 	var userID string
 	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
-	} else {
-		tools.RespFail(ctx, consts.Fail, "当前用户不存在", nil)
-		return
 	}
 	userD := dao.UserDAO{}
 	user, err := userD.Update(ctx, userID, payload.Nickname, payload.Avatar)
@@ -62,7 +59,61 @@ func (e *UserController) UpdateProfile(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	tools.RespSuccess(ctx, user)
+	res := api.Profile{
+		UserID:       user.UserID.Hex(),
+		Associated:   user.Associated,
+		GithubID:     user.GithubID,
+		WeChatID:     user.WeChatID,
+		Nickname:     user.Nickname,
+		Avatar:       user.Avatar,
+		CreationTime: user.CreationTime,
+		UpdateTime:   user.UpdateTime,
+	}
+	tools.RespSuccess(ctx, res)
+}
+
+func (e *UserController) GetUserInfo(ctx *gin.Context) {
+	var query api.GetUserInfoQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
+		return
+	}
+	userD := dao.UserDAO{}
+	user, err := userD.FindByUserID(ctx, query.UserID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	collected := false
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	if userID != "" {
+		self, err := userD.FindByUserID(ctx, userID)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		for _, followedUser := range self.FollowedUserIDs {
+			if followedUser == query.UserID {
+				collected = true
+				break
+			}
+		}
+	}
+	res := api.GetUserInfoResp{
+		UserID:       user.UserID.Hex(),
+		Associated:   user.Associated,
+		GithubID:     user.GithubID,
+		WeChatID:     user.WeChatID,
+		Nickname:     user.Nickname,
+		Avatar:       user.Avatar,
+		CreationTime: user.CreationTime,
+		UpdateTime:   user.UpdateTime,
+		Collected:    collected,
+	}
+	tools.RespSuccess(ctx, res)
 }
 
 func (e *UserController) Login(ctx *gin.Context) {
@@ -178,5 +229,243 @@ func (e *UserController) YDCallback(ctx *gin.Context) {
 	fmt.Println("登录成功回调payload", payload)
 	userD := dao.UserDAO{}
 	userD.SetTempUserID(payload.TempUserId, payload.WxMaUserInfo)
+	tools.RespSuccess(ctx, nil)
+}
+
+func (e *UserController) GetCollectedFeeds(ctx *gin.Context) {
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	feedIDs, err := userD.FindCollectedFeedIDs(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	total := len(feedIDs)
+	feedD := dao.FeedDao{}
+	feedS := service.FeedService{}
+	var feeds []api.FeedItem = []api.FeedItem{}
+	for _, feedID := range feedIDs {
+		feed, err := feedD.FindFeed(ctx, feedID)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		feedItem, err := feedS.FormatFeed(ctx, feed, feedIDs)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		feeds = append(feeds, feedItem)
+	}
+	res := api.GetCollectedFeedsResp{
+		Total: total,
+		List:  feeds,
+	}
+	tools.RespSuccess(ctx, res)
+}
+
+func (e *UserController) CollectFeed(ctx *gin.Context) {
+	var payload api.AddFeedToCollectionPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
+		return
+	}
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	feedIDs, err := userD.FindCollectedFeedIDs(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	for _, feedID := range feedIDs {
+		if feedID == payload.FeedID {
+			tools.RespSuccess(ctx, nil)
+			return
+		}
+	}
+	if err := userD.AddFeedIDToCollection(ctx, userID, payload.FeedID); err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, nil)
+}
+
+func (e *UserController) CancelCollectFeed(ctx *gin.Context) {
+	var payload api.RemoveFeedFromCollectionPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
+		return
+	}
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	if err := userD.RemoveFeedIDFromCollection(ctx, userID, payload.FeedID); err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, nil)
+}
+
+func (e *UserController) GetFollowedUsers(ctx *gin.Context) {
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	followedUserIDs, err := userD.FindFollowedUserIDs(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	total := len(followedUserIDs)
+	var users []model.User = []model.User{}
+	for _, followedUserID := range followedUserIDs {
+		user, err := userD.FindByUserID(ctx, followedUserID)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		users = append(users, user)
+	}
+	res := api.GetFollowedUsersResp{
+		Total: total,
+		List:  users,
+	}
+	tools.RespSuccess(ctx, res)
+}
+
+func (e *UserController) FollowUser(ctx *gin.Context) {
+	var payload api.FollowUserPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
+		return
+	}
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	userIDs, err := userD.FindFollowedUserIDs(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	for _, followedUserID := range userIDs {
+		if followedUserID == payload.UserID {
+			tools.RespSuccess(ctx, nil)
+			return
+		}
+	}
+	if err := userD.AddFollowedUserID(ctx, userID, payload.UserID); err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	user, err := userD.FindByUserID(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, user)
+}
+
+func (e *UserController) UnfollowUser(ctx *gin.Context) {
+	var payload api.UnfollowUserPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
+		return
+	}
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	if err := userD.RemoveFollowedUserID(ctx, userID, payload.UserID); err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	user, err := userD.FindByUserID(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, user)
+}
+
+func (e *UserController) GetCollectedWallpapers(ctx *gin.Context) {
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	wallpaperIDs, err := userD.FindCollectedWallpapers(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	total := len(wallpaperIDs)
+	wallpapers, err := userD.FindCollectedWallpapers(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	res := api.GetCollectedWallpapers{
+		Total: total,
+		List:  wallpapers,
+	}
+	tools.RespSuccess(ctx, res)
+}
+
+func (e *UserController) CollectWallpaper(ctx *gin.Context) {
+	var payload api.AddWallpaperToCollectionPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
+		return
+	}
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	user, err := userD.FindByUserID(ctx, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	for _, wallpaper := range user.CollectedWallpapers {
+		if wallpaper.WallpaperID == payload.Wallpaper.WallpaperID {
+			tools.RespSuccess(ctx, nil)
+			return
+		}
+	}
+	if err := userD.AddWallpaperToCollection(ctx, userID, payload.Wallpaper); err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, nil)
+}
+
+func (e *UserController) CancelCollectWallpaper(ctx *gin.Context) {
+	var payload api.RemoveWallpaperFromCollectionPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
+		return
+	}
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	userD := dao.UserDAO{}
+	if err := userD.RemoveWallpaperFromCollection(ctx, userID, payload.WallpaperID); err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
 	tools.RespSuccess(ctx, nil)
 }

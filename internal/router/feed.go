@@ -10,7 +10,7 @@ import (
 func InitFeedRouter(app *gin.Engine) {
 	group := app.Group("feed")
 	feedC := controller.FeedController{}
-	group.GET("/detail", feedC.GetDetail)
-	group.GET("/list", feedC.SearchFeedList)
+	group.GET("/detail", middleware.UseToken(), feedC.GetDetail)
+	group.GET("/list", middleware.UseToken(), feedC.SearchFeedList)
 	group.POST("/praise", middleware.VerifyToken(), feedC.PraiseFeed)
 }

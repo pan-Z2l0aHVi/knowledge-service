@@ -4,6 +4,7 @@
         "bson",
         "presign",
         "qiniu",
+        "unfollow",
         "Wallhaven"
     ]
 }

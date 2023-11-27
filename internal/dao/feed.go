@@ -60,13 +60,13 @@ func (e *FeedDao) FindFeedList(
 		feedList = []model.Feed{}
 	}
 
-	clone := make([]model.Feed, len(feedList))
-	for i, feed := range feedList {
+	clone := []model.Feed{}
+	for _, feed := range feedList {
 		if feed.Likes == nil {
 			feed.Likes = []model.Like{}
 		}
 		feed.LikesCount = len(feed.Likes)
-		clone[i] = feed
+		clone = append(clone, feed)
 	}
 	return clone, nil
 }

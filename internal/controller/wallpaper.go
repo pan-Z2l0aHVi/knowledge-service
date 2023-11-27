@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"knowledge-service/internal/api"
+	"knowledge-service/internal/dao"
+	"knowledge-service/internal/model"
 	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
@@ -46,7 +48,34 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 		return
 	}
 	data := append(res1.Result.Data, res2.Result.Data...)
-	tools.RespSuccess(ctx, data)
+
+	var collectedWallpapers []model.Wallpaper
+	if uid, exist := ctx.Get("uid"); exist {
+		userD := dao.UserDAO{}
+		user, err := userD.FindByUserID(ctx, uid.(string))
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		collectedWallpapers = user.CollectedWallpapers
+		res := []api.WallpaperItem{}
+		for _, item := range data {
+			collected := false
+			for _, wallpaper := range collectedWallpapers {
+				if item.WallpaperID == wallpaper.WallpaperID {
+					collected = true
+					break
+				}
+			}
+			res = append(res, api.WallpaperItem{
+				Wallpaper: item.Wallpaper,
+				Collected: collected,
+			})
+		}
+		tools.RespSuccess(ctx, res)
+	} else {
+		tools.RespSuccess(ctx, data)
+	}
 }
 
 func (e *WallpaperController) GetInfo(ctx *gin.Context) {

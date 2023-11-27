@@ -104,9 +104,6 @@ func (e *DocController) SearchDocs(ctx *gin.Context) {
 		userID = query.AuthorID
 	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
-	} else {
-		tools.RespFail(ctx, consts.Fail, "当前用户不存在", nil)
-		return
 	}
 	var asc int
 	if query.SortType == "desc" {

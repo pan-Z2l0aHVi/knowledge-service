@@ -22,6 +22,7 @@ type SearchFeedsListQuery struct {
 type FeedItem struct {
 	model.Feed
 	AuthorInfo model.Author `json:"author_info"`
+	Collected  bool         `json:"collected"`
 }
 
 type GetFeedListResp struct {

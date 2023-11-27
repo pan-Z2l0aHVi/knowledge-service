@@ -1,37 +1,37 @@
 package model
 
 type Wallpaper struct {
-	WallpaperID string   `json:"id"`
-	URL         string   `json:"url"`
-	ShortURL    string   `json:"short_url"`
-	Views       int      `json:"views"`
-	Purity      string   `json:"purity"`
-	Category    string   `json:"category"`
-	DimensionX  int      `json:"dimension_x"`
-	DimensionY  int      `json:"dimension_y"`
-	Ratio       string   `json:"ratio"`
-	Resolution  string   `json:"resolution"`
-	File_size   int      `json:"file_size"`
-	File_type   string   `json:"file_type"`
-	Created_at  string   `json:"created_at"`
-	Colors      []string `json:"colors"`
-	Path        string   `json:"path"`
-	Thumbs      Thumbs   `json:"thumbs"`
-	Tags        []Tag    `json:"tags"`
+	WallpaperID string   `json:"id" bson:"id"`
+	URL         string   `json:"url" bson:"url"`
+	ShortURL    string   `json:"short_url" bson:"short_url"`
+	Views       int      `json:"views" bson:"views"`
+	Purity      string   `json:"purity" bson:"purity"`
+	Category    string   `json:"category" bson:"category"`
+	DimensionX  int      `json:"dimension_x" bson:"dimension_x"`
+	DimensionY  int      `json:"dimension_y" bson:"dimension_y"`
+	Ratio       string   `json:"ratio" bson:"ratio"`
+	Resolution  string   `json:"resolution" bson:"resolution"`
+	File_size   int      `json:"file_size" bson:"file_size"`
+	File_type   string   `json:"file_type" bson:"file_type"`
+	Created_at  string   `json:"created_at" bson:"created_at"`
+	Colors      []string `json:"colors" bson:"colors"`
+	Path        string   `json:"path" bson:"path"`
+	Thumbs      Thumbs   `json:"thumbs" bson:"thumbs"`
+	Tags        []Tag    `json:"tags" bson:"tags"`
 }
 
 type Tag struct {
-	TagID       int    `json:"id"`
-	Name        string `json:"name"`
-	Alias       string `json:"alias"`
-	Category_id int    `json:"category_id"`
-	Category    string `json:"category"`
-	Purity      string `json:"purity"`
-	Created_at  string `json:"created_at"`
+	TagID       int    `json:"id" bson:"id"`
+	Name        string `json:"name" bson:"name"`
+	Alias       string `json:"alias" bson:"alias"`
+	Category_id int    `json:"category_id" bson:"category_id"`
+	Category    string `json:"category" bson:"category"`
+	Purity      string `json:"purity" bson:"purity"`
+	Created_at  string `json:"created_at" bson:"created_at"`
 }
 
 type Thumbs struct {
-	Large    string `json:"large"`
-	Original string `json:"original"`
-	Small    string `json:"small"`
+	Large    string `json:"large" bson:"large"`
+	Original string `json:"original" bson:"original"`
+	Small    string `json:"small" bson:"small"`
 }

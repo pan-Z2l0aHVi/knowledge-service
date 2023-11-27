@@ -3,6 +3,7 @@ package controller
 import (
 	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
 
@@ -23,16 +24,23 @@ func (e *FeedController) GetDetail(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	author, err := feedD.FindAuthorByID(ctx, feed.AuthorID)
+	var userID string
+	var collectedFeedIDs []string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+		userD := dao.UserDAO{}
+		user, err := userD.FindByUserID(ctx, userID)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		collectedFeedIDs = user.CollectedFeedIDs
+	}
+	feedS := service.FeedService{}
+	res, err := feedS.FormatFeed(ctx, feed, collectedFeedIDs)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
-	}
-	res := api.GetFeedDetailResp{
-		FeedItem: api.FeedItem{
-			Feed:       feed,
-			AuthorInfo: author,
-		},
 	}
 	tools.RespSuccess(ctx, res)
 }
@@ -63,17 +71,27 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	list := make([]api.FeedItem, len(feedList))
-	for i, item := range feedList {
-		author, err := feedD.FindAuthorByID(ctx, item.AuthorID)
+	var userID string
+	var collectedFeedIDs []string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+		userD := dao.UserDAO{}
+		user, err := userD.FindByUserID(ctx, userID)
 		if err != nil {
 			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 			return
 		}
-		list[i] = api.FeedItem{
-			Feed:       item,
-			AuthorInfo: author,
+		collectedFeedIDs = user.CollectedFeedIDs
+	}
+	feedS := service.FeedService{}
+	list := []api.FeedItem{}
+	for _, feed := range feedList {
+		feedItem, err := feedS.FormatFeed(ctx, feed, collectedFeedIDs)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
 		}
+		list = append(list, feedItem)
 	}
 	res := api.GetFeedListResp{
 		Total: len(list),
@@ -91,9 +109,6 @@ func (e *FeedController) PraiseFeed(ctx *gin.Context) {
 	var userID string
 	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
-	} else {
-		tools.RespFail(ctx, consts.Fail, "当前用户不存在", nil)
-		return
 	}
 	feedD := dao.FeedDao{}
 	liked, err := feedD.CheckLiked(ctx, userID, payload.FeedID)
