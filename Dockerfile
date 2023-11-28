@@ -7,10 +7,10 @@ ENV GOPROXY=https://goproxy.cn,direct
 WORKDIR /app
 
 # 复制 Go 项目文件到容器中
-COPY . .
+COPY knowledge-service /app
 
 # 构建 Go 项目
 RUN go build -o main .
 
 # 设置容器启动命令
-CMD ["./main"]
+CMD ["./knowledge-service"]
