@@ -1,8 +1,6 @@
 package tools
 
 import (
-	"fmt"
-
 	"github.com/go-redis/redis"
 )
 
@@ -17,7 +15,6 @@ func (e *Redis) InitRedis() {
 		panic(err)
 	}
 	address := cfg.Redis.Host + ":" + cfg.Redis.Port
-	fmt.Println("address", address)
 	rds = redis.NewClient(&redis.Options{
 		Addr:     address,
 		Password: cfg.Redis.Pwd,

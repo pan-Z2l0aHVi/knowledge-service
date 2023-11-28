@@ -11,7 +11,7 @@
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
             "env": {
-                "ENV": "local"
+                "CONFIG_PATH": "/Users/bopan/Code/backend/knowledge-service/conf/app_local.json"
             }
         }
     ]

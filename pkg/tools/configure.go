@@ -33,14 +33,11 @@ type RedisConfigure struct {
 var _cfg *Configure
 
 func ParseConfigure() (*Configure, error) {
-	env := os.Getenv("ENV")
-	fmt.Println("ENV", env)
+	env := os.Getenv("CONFIG_PATH")
+	fmt.Println("CONFIG_PATH", env)
 	var path string
-	switch env {
-	case "local":
-		path = "./conf/app_local.json"
-	default:
-		path = "./conf/app_prd.json"
+	if customPath := os.Getenv("CONFIG_PATH"); customPath != "" {
+		path = customPath
 	}
 	file, err := os.Open((path))
 	if err != nil {

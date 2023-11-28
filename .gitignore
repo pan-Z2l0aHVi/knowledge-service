@@ -28,3 +28,6 @@ request.token
 # Temporary files
 __debug_bin*
 .DS_Store
+
+# Dist
+knowledge
