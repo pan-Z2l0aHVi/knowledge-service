@@ -20,16 +20,9 @@ type GetUserInfoQuery struct {
 	UserID string `form:"user_id"`
 }
 
-type GetUserInfoResp struct {
-	UserID       string    `json:"user_id"`
-	Associated   int       `json:"associated"`
-	GithubID     int       `json:"github_id"`
-	WeChatID     string    `json:"wechat_id"`
-	Nickname     string    `json:"nickname"`
-	Avatar       string    `json:"avatar"`
-	CreationTime time.Time `json:"creation_time"`
-	UpdateTime   time.Time `json:"update_time"`
-	Collected    bool      `json:"collected"`
+type UserItem struct {
+	Profile
+	Collected bool `json:"collected"`
 }
 
 type UpdateProfilePayload struct {
@@ -161,11 +154,6 @@ type RemoveFeedFromCollectionPayload struct {
 	FeedID string `json:"feed_id" binding:"required"`
 }
 
-type GetCollectedFeedsResp struct {
-	Total int        `json:"total"`
-	List  []FeedItem `json:"list"`
-}
-
 type FollowUserPayload struct {
 	UserID string `json:"user_id" binding:"required"`
 }
@@ -174,20 +162,10 @@ type UnfollowUserPayload struct {
 	UserID string `json:"user_id" binding:"required"`
 }
 
-type GetFollowedUsersResp struct {
-	Total int          `json:"total"`
-	List  []model.User `json:"list"`
-}
-
 type AddWallpaperToCollectionPayload struct {
 	Wallpaper model.Wallpaper `json:"wallpaper" binding:"required"`
 }
 
 type RemoveWallpaperFromCollectionPayload struct {
 	WallpaperID string `json:"wallpaper_id" binding:"required"`
-}
-
-type GetCollectedWallpapers struct {
-	Total int               `json:"total"`
-	List  []model.Wallpaper `json:"list"`
 }

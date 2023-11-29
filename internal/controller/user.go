@@ -102,16 +102,18 @@ func (e *UserController) GetUserInfo(ctx *gin.Context) {
 			}
 		}
 	}
-	res := api.GetUserInfoResp{
-		UserID:       user.UserID.Hex(),
-		Associated:   user.Associated,
-		GithubID:     user.GithubID,
-		WeChatID:     user.WeChatID,
-		Nickname:     user.Nickname,
-		Avatar:       user.Avatar,
-		CreationTime: user.CreationTime,
-		UpdateTime:   user.UpdateTime,
-		Collected:    collected,
+	res := api.UserItem{
+		Profile: api.Profile{
+			UserID:       user.UserID.Hex(),
+			Associated:   user.Associated,
+			GithubID:     user.GithubID,
+			WeChatID:     user.WeChatID,
+			Nickname:     user.Nickname,
+			Avatar:       user.Avatar,
+			CreationTime: user.CreationTime,
+			UpdateTime:   user.UpdateTime,
+		},
+		Collected: collected,
 	}
 	tools.RespSuccess(ctx, res)
 }
@@ -243,7 +245,6 @@ func (e *UserController) GetCollectedFeeds(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	total := len(feedIDs)
 	feedD := dao.FeedDao{}
 	feedS := service.FeedService{}
 	var feeds []api.FeedItem = []api.FeedItem{}
@@ -260,11 +261,7 @@ func (e *UserController) GetCollectedFeeds(ctx *gin.Context) {
 		}
 		feeds = append(feeds, feedItem)
 	}
-	res := api.GetCollectedFeedsResp{
-		Total: total,
-		List:  feeds,
-	}
-	tools.RespSuccess(ctx, res)
+	tools.RespSuccess(ctx, feeds)
 }
 
 func (e *UserController) CollectFeed(ctx *gin.Context) {
@@ -325,21 +322,28 @@ func (e *UserController) GetFollowedUsers(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	total := len(followedUserIDs)
-	var users []model.User = []model.User{}
+	users := []api.UserItem{}
 	for _, followedUserID := range followedUserIDs {
 		user, err := userD.FindByUserID(ctx, followedUserID)
 		if err != nil {
 			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 			return
 		}
-		users = append(users, user)
+		users = append(users, api.UserItem{
+			Profile: api.Profile{
+				UserID:       user.UserID.Hex(),
+				Associated:   user.Associated,
+				GithubID:     user.GithubID,
+				WeChatID:     user.WeChatID,
+				Nickname:     user.Nickname,
+				Avatar:       user.Avatar,
+				UpdateTime:   user.UpdateTime,
+				CreationTime: user.CreationTime,
+			},
+			Collected: true,
+		})
 	}
-	res := api.GetFollowedUsersResp{
-		Total: total,
-		List:  users,
-	}
-	tools.RespSuccess(ctx, res)
+	tools.RespSuccess(ctx, users)
 }
 
 func (e *UserController) FollowUser(ctx *gin.Context) {
@@ -405,22 +409,12 @@ func (e *UserController) GetCollectedWallpapers(ctx *gin.Context) {
 		userID = uid.(string)
 	}
 	userD := dao.UserDAO{}
-	wallpaperIDs, err := userD.FindCollectedWallpapers(ctx, userID)
-	if err != nil {
-		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-		return
-	}
-	total := len(wallpaperIDs)
 	wallpapers, err := userD.FindCollectedWallpapers(ctx, userID)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.GetCollectedWallpapers{
-		Total: total,
-		List:  wallpapers,
-	}
-	tools.RespSuccess(ctx, res)
+	tools.RespSuccess(ctx, wallpapers)
 }
 
 func (e *UserController) CollectWallpaper(ctx *gin.Context) {

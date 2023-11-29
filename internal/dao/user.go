@@ -236,13 +236,17 @@ func (e *UserDAO) RemoveWallpaperFromCollection(ctx *gin.Context, userID string,
 	return nil
 }
 
-func (e *UserDAO) FindCollectedWallpapers(ctx *gin.Context, userID string) ([]model.Wallpaper, error) {
+func (e *UserDAO) FindCollectedWallpapers(ctx *gin.Context, userID string) ([]api.WallpaperItem, error) {
 	user, err := e.FindByUserID(ctx, userID)
 	if err != nil {
-		return []model.Wallpaper{}, err
+		return []api.WallpaperItem{}, err
 	}
-	if len(user.CollectedWallpapers) == 0 {
-		return []model.Wallpaper{}, nil
+	wallpapers := []api.WallpaperItem{}
+	for _, wallpaper := range user.CollectedWallpapers {
+		wallpapers = append(wallpapers, api.WallpaperItem{
+			Wallpaper: wallpaper,
+			Collected: true,
+		})
 	}
-	return user.CollectedWallpapers, nil
+	return wallpapers, nil
 }
