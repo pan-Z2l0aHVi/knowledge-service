@@ -12,6 +12,7 @@ type Feed struct {
 	Content      string             `json:"content" bson:"content"`
 	Summary      string             `json:"summary" bson:"summary"`
 	AuthorID     string             `json:"author_id" bson:"author_id"`
+	SpaceID      string             `json:"space_id" bson:"space_id"`
 	Cover        string             `json:"cover" bson:"cover"`
 	Public       bool               `json:"public" bson:"public"`
 	CreationTime time.Time          `json:"creation_time" bson:"creation_time"`
