@@ -92,7 +92,7 @@ func (e *WallpaperController) GetInfo(ctx *gin.Context) {
 	client := http.Client{
 		Timeout: 10 * time.Second,
 	}
-	url := strings.Replace(decodedURL, "https://wallhaven.cc", consts.WallhavenAPI, 1)
+	url := strings.Replace(decodedURL, "https://wallhaven.cc", consts.WallhavenAPI, 1) + "?apikey=" + consts.APIKey
 	resp, err := client.Get(url)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
