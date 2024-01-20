@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
@@ -13,7 +13,7 @@ import (
 type MaterialController struct{}
 
 func (e *MaterialController) GetInfo(ctx *gin.Context) {
-	var query api.GetMaterialInfoQuery
+	var query entity.GetMaterialInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -24,14 +24,14 @@ func (e *MaterialController) GetInfo(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.GetMaterialInfoResp{
+	res := entity.GetMaterialInfoResp{
 		Material: materialInfo,
 	}
 	tools.RespSuccess(ctx, res)
 }
 
 func (e *MaterialController) Upload(ctx *gin.Context) {
-	var payload api.UploadMaterialPayload
+	var payload entity.UploadMaterialPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -42,20 +42,20 @@ func (e *MaterialController) Upload(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.UploadMaterialResp{
+	res := entity.UploadMaterialResp{
 		Material: materialInfo,
 	}
 	tools.RespSuccess(ctx, res)
 }
 
 func (e *MaterialController) Search(ctx *gin.Context) {
-	var query api.SearchMaterialQuery
+	var query entity.SearchMaterialQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	materialD := dao.MaterialDAO{}
-	materialList, err := materialD.Search(ctx, query.Type, query.Keywords, query.Page, query.PageSize)
+	materialList, err := materialD.FindList(ctx, query.Type, query.Keywords, query.Page, query.PageSize)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
@@ -63,7 +63,7 @@ func (e *MaterialController) Search(ctx *gin.Context) {
 	if len(materialList) == 0 {
 		materialList = []model.Material{}
 	}
-	res := api.SearchMaterialResp{
+	res := entity.SearchMaterialResp{
 		Total: len(materialList),
 		List:  materialList,
 	}

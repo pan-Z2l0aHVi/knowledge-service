@@ -1,13 +1,20 @@
-package api
+package entity
 
-import "knowledge-service/internal/model"
+import (
+	"knowledge-service/internal/model"
+)
 
 type GetDocInfoQuery struct {
 	DocID string `form:"doc_id" binding:"required"`
 }
 
 type GetDocInfoResp struct {
+	DocInfo
+}
+
+type DocInfo struct {
 	model.Doc
+	Author Author `json:"author"`
 }
 
 type CreateDocPayload struct {
@@ -41,8 +48,8 @@ type SearchDocsQuery struct {
 }
 
 type GetDocsResp struct {
-	Total int         `json:"total"`
-	List  []model.Doc `json:"list"`
+	Total int       `json:"total"`
+	List  []DocInfo `json:"list"`
 }
 
 type GetDraftQuery struct {
@@ -54,4 +61,10 @@ type GetDraftQuery struct {
 type UpdateDraftPayload struct {
 	DocID   string `json:"doc_id" binding:"required"`
 	Content string `json:"content" binding:"required"`
+}
+
+type Author struct {
+	ID       string `json:"id"`
+	Nickname string `json:"nickname"`
+	Avatar   string `json:"avatar"`
 }

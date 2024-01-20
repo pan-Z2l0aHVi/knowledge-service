@@ -14,9 +14,3 @@ type Space struct {
 	CreationTime time.Time          `json:"creation_time" bson:"creation_time"`
 	UpdateTime   time.Time          `json:"update_time" bson:"update_time"`
 }
-
-type Owner struct {
-	UserID   primitive.ObjectID `json:"user_id" bson:"_id"`
-	Nickname string             `json:"nickname" bson:"nickname"`
-	Avatar   string             `json:"avatar" bson:"avatar"`
-}

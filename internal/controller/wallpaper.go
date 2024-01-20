@@ -3,8 +3,8 @@ package controller
 import (
 	"encoding/json"
 	"io"
-	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
 	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
@@ -21,7 +21,7 @@ import (
 type WallpaperController struct{}
 
 func (e *WallpaperController) Search(ctx *gin.Context) {
-	var query api.SearchWallpaperQuery
+	var query entity.SearchWallpaperQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -32,8 +32,8 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 		return
 	}
 	// wallpaper api 的 page_size 固定为 24，接口转发时改为 48
-	ch1 := make(chan api.SearchWallpaperAPIRes)
-	ch2 := make(chan api.SearchWallpaperAPIRes)
+	ch1 := make(chan entity.SearchWallpaperAPIRes)
+	ch2 := make(chan entity.SearchWallpaperAPIRes)
 	wallpaperS := service.WallpaperService{}
 	go wallpaperS.ChSearchWallpaper(ch1, query, 2*page-1)
 	go wallpaperS.ChSearchWallpaper(ch2, query, 2*page)
@@ -58,7 +58,7 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 			return
 		}
 		collectedWallpapers = user.CollectedWallpapers
-		res := []api.WallpaperItem{}
+		res := []entity.WallpaperItem{}
 		for _, item := range data {
 			collected := false
 			for _, wallpaper := range collectedWallpapers {
@@ -67,7 +67,7 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 					break
 				}
 			}
-			res = append(res, api.WallpaperItem{
+			res = append(res, entity.WallpaperItem{
 				Wallpaper: item.Wallpaper,
 				Collected: collected,
 			})
@@ -79,7 +79,7 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 }
 
 func (e *WallpaperController) GetInfo(ctx *gin.Context) {
-	var query api.GetWallpaperInfoQuery
+	var query entity.GetWallpaperInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -104,7 +104,7 @@ func (e *WallpaperController) GetInfo(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	var info api.GetWallpaperInfoResp
+	var info entity.GetWallpaperInfoResp
 	if err := json.Unmarshal(body, &info); err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return

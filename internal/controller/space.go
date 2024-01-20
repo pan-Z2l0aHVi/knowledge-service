@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/entity"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
 
@@ -12,7 +12,7 @@ import (
 type SpaceController struct{}
 
 func (e *SpaceController) GetInfo(ctx *gin.Context) {
-	var query api.GetSpaceInfoQuery
+	var query entity.GetSpaceInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -23,14 +23,14 @@ func (e *SpaceController) GetInfo(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.GetSpaceInfoResp{
+	res := entity.GetSpaceInfoResp{
 		Space: spaceInfo,
 	}
 	tools.RespSuccess(ctx, res)
 }
 
 func (e *SpaceController) Create(ctx *gin.Context) {
-	var payload api.CreateSpacePayload
+	var payload entity.CreateSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -54,7 +54,7 @@ func (e *SpaceController) Create(ctx *gin.Context) {
 }
 
 func (e *SpaceController) Update(ctx *gin.Context) {
-	var payload api.UpdateSpacePayload
+	var payload entity.UpdateSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -74,7 +74,7 @@ func (e *SpaceController) Update(ctx *gin.Context) {
 }
 
 func (e *SpaceController) Delete(ctx *gin.Context) {
-	var payload api.DeleteSpacePayload
+	var payload entity.DeleteSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -89,7 +89,7 @@ func (e *SpaceController) Delete(ctx *gin.Context) {
 }
 
 func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
-	var query api.SearchSpacesQuery
+	var query entity.SearchSpacesQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -107,7 +107,7 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 		asc = 1
 	}
 	spaceD := dao.SpaceDAO{}
-	spaces, err := spaceD.FindSpaces(ctx,
+	spaces, err := spaceD.FindList(ctx,
 		query.Page,
 		query.PageSize,
 		userID,
@@ -119,7 +119,7 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.GetSpacesResp{
+	res := entity.GetSpacesResp{
 		Total: len(spaces),
 		List:  spaces,
 	}

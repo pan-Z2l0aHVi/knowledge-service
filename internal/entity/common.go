@@ -1,4 +1,4 @@
-package api
+package entity
 
 type GetBucketTokenResp struct {
 	Token string `json:"token"`

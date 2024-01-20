@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
 	"knowledge-service/pkg/consts"
 	"net/http"
@@ -76,19 +76,19 @@ func (e *UserService) GithubLogin(ctx *gin.Context, code string) (model.User, er
 	return user, nil
 }
 
-func (e *UserService) GetGitHubToken(code string) (api.GitHubTokenSuccessResp, error) {
-	params := api.GitHubTokenPayload{
+func (e *UserService) GetGitHubToken(code string) (entity.GitHubTokenSuccessResp, error) {
+	params := entity.GitHubTokenPayload{
 		ClientID:     consts.GithubClientID,
 		ClientSecret: consts.GithubClientSecret,
 		Code:         code,
 	}
 	jsonParams, err := json.Marshal(params)
 	if err != nil {
-		return api.GitHubTokenSuccessResp{}, err
+		return entity.GitHubTokenSuccessResp{}, err
 	}
 	req, err := http.NewRequest("POST", consts.GithubAccessTokenURL, bytes.NewBuffer(jsonParams))
 	if err != nil {
-		return api.GitHubTokenSuccessResp{}, err
+		return entity.GitHubTokenSuccessResp{}, err
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
@@ -97,32 +97,32 @@ func (e *UserService) GetGitHubToken(code string) (api.GitHubTokenSuccessResp, e
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return api.GitHubTokenSuccessResp{}, err
+		return entity.GitHubTokenSuccessResp{}, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return api.GitHubTokenSuccessResp{}, err
+		return entity.GitHubTokenSuccessResp{}, err
 	}
-	tokenResp := api.GitHubTokenResp{}
+	tokenResp := entity.GitHubTokenResp{}
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return api.GitHubTokenSuccessResp{}, err
+		return entity.GitHubTokenSuccessResp{}, err
 	}
-	successResp := api.GitHubTokenSuccessResp{
+	successResp := entity.GitHubTokenSuccessResp{
 		AccessToken: tokenResp.AccessToken,
 		Scope:       tokenResp.Scope,
 		TokenType:   tokenResp.TokenType,
 	}
 	if len(tokenResp.Error) > 0 {
-		return api.GitHubTokenSuccessResp{}, errors.New(tokenResp.ErrorDescription)
+		return entity.GitHubTokenSuccessResp{}, errors.New(tokenResp.ErrorDescription)
 	}
 	return successResp, nil
 }
 
-func (e *UserService) GetGithubProfile(token string) (api.GithubProfileResp, error) {
+func (e *UserService) GetGithubProfile(token string) (entity.GithubProfileResp, error) {
 	req, err := http.NewRequest("GET", consts.GithubUserAPI, nil)
 	if err != nil {
-		return api.GithubProfileResp{}, err
+		return entity.GithubProfileResp{}, err
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	client := http.Client{
@@ -130,16 +130,16 @@ func (e *UserService) GetGithubProfile(token string) (api.GithubProfileResp, err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return api.GithubProfileResp{}, err
+		return entity.GithubProfileResp{}, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return api.GithubProfileResp{}, err
+		return entity.GithubProfileResp{}, err
 	}
-	profile := api.GithubProfileResp{}
+	profile := entity.GithubProfileResp{}
 	if err := json.Unmarshal(body, &profile); err != nil {
-		return api.GithubProfileResp{}, err
+		return entity.GithubProfileResp{}, err
 	}
 	return profile, nil
 }

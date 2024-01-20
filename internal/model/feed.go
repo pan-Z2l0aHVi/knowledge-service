@@ -7,18 +7,14 @@ import (
 )
 
 type Feed struct {
-	FeedID       primitive.ObjectID `json:"feed_id" bson:"_id"`
-	Title        string             `json:"title" bson:"title"`
-	Content      string             `json:"content" bson:"content"`
-	Summary      string             `json:"summary" bson:"summary"`
-	AuthorID     string             `json:"author_id" bson:"author_id"`
-	SpaceID      string             `json:"space_id" bson:"space_id"`
-	Cover        string             `json:"cover" bson:"cover"`
-	Public       bool               `json:"public" bson:"public"`
-	CreationTime time.Time          `json:"creation_time" bson:"creation_time"`
-	UpdateTime   time.Time          `json:"update_time" bson:"update_time"`
+	ID           primitive.ObjectID `json:"id" bson:"_id"`
+	CreatorID    string             `json:"creator_id" bson:"creator_id"`
+	SubjectID    string             `json:"subject_id" bson:"subject_id"`
+	SubjectType  string             `json:"subject_type" bson:"subject_type"`
 	Likes        []Like             `json:"likes" bson:"likes"`
 	LikesCount   int                `json:"likes_count" bson:"likes_count"`
+	CreationTime time.Time          `json:"creation_time" bson:"creation_time"`
+	UpdateTime   time.Time          `json:"update_time" bson:"update_time"`
 }
 
 type Like struct {

@@ -23,11 +23,11 @@ func (e *DocDAO) Find(ctx *gin.Context, docID string) (model.Doc, error) {
 		return model.Doc{}, err
 	}
 	filter := bson.M{"_id": objID}
-	var docInfo model.Doc
-	if err := collection.FindOne(ctx, filter).Decode(&docInfo); err != nil {
+	var doc model.Doc
+	if err := collection.FindOne(ctx, filter).Decode(&doc); err != nil {
 		return model.Doc{}, err
 	}
-	return docInfo, nil
+	return doc, nil
 }
 
 func (e *DocDAO) Create(
@@ -98,7 +98,7 @@ func (e *DocDAO) Update(
 	return doc, nil
 }
 
-func (e *DocDAO) Delete(ctx *gin.Context, docIDs []string) error {
+func (e *DocDAO) DeleteMany(ctx *gin.Context, docIDs []string) error {
 	collection := e.GetDB().Collection("doc")
 	var objIDs []primitive.ObjectID
 	for _, docID := range docIDs {
@@ -115,7 +115,7 @@ func (e *DocDAO) Delete(ctx *gin.Context, docIDs []string) error {
 	return nil
 }
 
-func (e *DocDAO) FindDocs(ctx *gin.Context,
+func (e *DocDAO) FindList(ctx *gin.Context,
 	page int,
 	pageSize int,
 	authorID string,
@@ -164,7 +164,7 @@ func (e *DocDAO) FindDocs(ctx *gin.Context,
 	return docs, nil
 }
 
-func (e *DocDAO) FindDraftsByDoc(ctx *gin.Context, docID string, page int, pageSize int) ([]model.Draft, error) {
+func (e *DocDAO) FindDrafts(ctx *gin.Context, docID string, page int, pageSize int) ([]model.Draft, error) {
 	collection := e.GetDB().Collection("doc")
 	objID, err := primitive.ObjectIDFromHex(docID)
 	if err != nil {

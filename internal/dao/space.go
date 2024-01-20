@@ -98,7 +98,7 @@ func (e *SpaceDAO) Delete(ctx *gin.Context, spaceIDS []string) error {
 	return nil
 }
 
-func (e *SpaceDAO) FindSpaces(ctx *gin.Context,
+func (e *SpaceDAO) FindList(ctx *gin.Context,
 	page int,
 	pageSize int,
 	ownerID string,

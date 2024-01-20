@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
 	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserController struct{}
@@ -30,7 +31,7 @@ func (e *UserController) GetProfile(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.Profile{
+	res := entity.Profile{
 		UserID:       user.UserID.Hex(),
 		Associated:   user.Associated,
 		GithubID:     user.GithubID,
@@ -44,7 +45,7 @@ func (e *UserController) GetProfile(ctx *gin.Context) {
 }
 
 func (e *UserController) UpdateProfile(ctx *gin.Context) {
-	var payload api.UpdateProfilePayload
+	var payload entity.UpdateProfilePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -59,7 +60,7 @@ func (e *UserController) UpdateProfile(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.Profile{
+	res := entity.Profile{
 		UserID:       user.UserID.Hex(),
 		Associated:   user.Associated,
 		GithubID:     user.GithubID,
@@ -73,7 +74,7 @@ func (e *UserController) UpdateProfile(ctx *gin.Context) {
 }
 
 func (e *UserController) GetUserInfo(ctx *gin.Context) {
-	var query api.GetUserInfoQuery
+	var query entity.GetUserInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -102,8 +103,8 @@ func (e *UserController) GetUserInfo(ctx *gin.Context) {
 			}
 		}
 	}
-	res := api.UserItem{
-		Profile: api.Profile{
+	res := entity.UserItem{
+		Profile: entity.Profile{
 			UserID:       user.UserID.Hex(),
 			Associated:   user.Associated,
 			GithubID:     user.GithubID,
@@ -119,7 +120,7 @@ func (e *UserController) GetUserInfo(ctx *gin.Context) {
 }
 
 func (e *UserController) Login(ctx *gin.Context) {
-	var payload api.LoginPayload
+	var payload entity.LoginPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -153,7 +154,7 @@ func (e *UserController) Login(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.LoginRes{
+	res := entity.LoginRes{
 		User:  user,
 		Token: token,
 	}
@@ -177,7 +178,7 @@ func (e *UserController) GetYDQRCode(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	var result api.YDWechatQRCodeResp
+	var result entity.YDWechatQRCodeResp
 	if err = json.Unmarshal(body, &result); err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
@@ -187,8 +188,8 @@ func (e *UserController) GetYDQRCode(ctx *gin.Context) {
 		return
 	}
 	userD := dao.UserDAO{}
-	userD.SetTempUserID(result.Data.TempUserID, api.WeChatUserInfo{})
-	res := api.GetYDQRCodeResp{
+	userD.SetTempUserID(result.Data.TempUserID, entity.WeChatUserInfo{})
+	res := entity.GetYDQRCodeResp{
 		TempUserID: result.Data.TempUserID,
 		QRCodeURL:  result.Data.QRURL,
 	}
@@ -196,7 +197,7 @@ func (e *UserController) GetYDQRCode(ctx *gin.Context) {
 }
 
 func (e *UserController) GetYDLoginStatus(ctx *gin.Context) {
-	var query api.GetYDLoginStatusQuery
+	var query entity.GetYDLoginStatusQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -204,18 +205,18 @@ func (e *UserController) GetYDLoginStatus(ctx *gin.Context) {
 	userD := dao.UserDAO{}
 	userInfo, err := userD.GetTempUserIDUserInfo(query.TempUserID)
 	if err != nil {
-		tools.RespSuccess(ctx, api.GetYDLoginStatusResp{
+		tools.RespSuccess(ctx, entity.GetYDLoginStatusResp{
 			HasLogin: false,
 		})
 		return
 	}
-	tools.RespSuccess(ctx, api.GetYDLoginStatusResp{
+	tools.RespSuccess(ctx, entity.GetYDLoginStatusResp{
 		HasLogin: userInfo.OpenID != "",
 	})
 }
 
 func (e *UserController) YDCallback(ctx *gin.Context) {
-	var payload api.YDCallbackPayload
+	var payload entity.YDCallbackPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -247,25 +248,28 @@ func (e *UserController) GetCollectedFeeds(ctx *gin.Context) {
 	}
 	feedD := dao.FeedDao{}
 	feedS := service.FeedService{}
-	var feeds []api.FeedItem = []api.FeedItem{}
+	feeds := []model.Feed{}
 	for _, feedID := range feedIDs {
-		feed, err := feedD.FindFeed(ctx, feedID)
+		feed, err := feedD.Find(ctx, feedID)
 		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				continue
+			}
 			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 			return
 		}
-		feedItem, err := feedS.FormatFeed(ctx, feed, feedIDs)
-		if err != nil {
-			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-			return
-		}
-		feeds = append(feeds, feedItem)
+		feeds = append(feeds, feed)
 	}
-	tools.RespSuccess(ctx, feeds)
+	feedList, err := feedS.FormatFeedList(ctx, feeds, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	tools.RespSuccess(ctx, feedList)
 }
 
 func (e *UserController) CollectFeed(ctx *gin.Context) {
-	var payload api.AddFeedToCollectionPayload
+	var payload entity.AddFeedToCollectionPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -294,7 +298,7 @@ func (e *UserController) CollectFeed(ctx *gin.Context) {
 }
 
 func (e *UserController) CancelCollectFeed(ctx *gin.Context) {
-	var payload api.RemoveFeedFromCollectionPayload
+	var payload entity.RemoveFeedFromCollectionPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -322,15 +326,15 @@ func (e *UserController) GetFollowedUsers(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	users := []api.UserItem{}
+	users := []entity.UserItem{}
 	for _, followedUserID := range followedUserIDs {
 		user, err := userD.FindByUserID(ctx, followedUserID)
 		if err != nil {
 			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 			return
 		}
-		users = append(users, api.UserItem{
-			Profile: api.Profile{
+		users = append(users, entity.UserItem{
+			Profile: entity.Profile{
 				UserID:       user.UserID.Hex(),
 				Associated:   user.Associated,
 				GithubID:     user.GithubID,
@@ -347,7 +351,7 @@ func (e *UserController) GetFollowedUsers(ctx *gin.Context) {
 }
 
 func (e *UserController) FollowUser(ctx *gin.Context) {
-	var payload api.FollowUserPayload
+	var payload entity.FollowUserPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -381,7 +385,7 @@ func (e *UserController) FollowUser(ctx *gin.Context) {
 }
 
 func (e *UserController) UnfollowUser(ctx *gin.Context) {
-	var payload api.UnfollowUserPayload
+	var payload entity.UnfollowUserPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -418,7 +422,7 @@ func (e *UserController) GetCollectedWallpapers(ctx *gin.Context) {
 }
 
 func (e *UserController) CollectWallpaper(ctx *gin.Context) {
-	var payload api.AddWallpaperToCollectionPayload
+	var payload entity.AddWallpaperToCollectionPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -447,7 +451,7 @@ func (e *UserController) CollectWallpaper(ctx *gin.Context) {
 }
 
 func (e *UserController) CancelCollectWallpaper(ctx *gin.Context) {
-	var payload api.RemoveWallpaperFromCollectionPayload
+	var payload entity.RemoveWallpaperFromCollectionPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return

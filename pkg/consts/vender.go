@@ -6,7 +6,7 @@ const (
 	GithubClientID       = "623037fcf1a6cb4ad6d8"
 	GithubClientSecret   = "7ccd7c57dce15c44deee8760f275085afe567708"
 	GithubAccessTokenURL = "https://github.com/login/oauth/access_token"
-	GithubUserAPI        = "https://api.github.com/user"
+	GithubUserAPI        = "https://entity.github.com/user"
 	YDAPI                = "https://yd.jylt.cc/api"
 	YDSecret             = "a69aca2e"
 )

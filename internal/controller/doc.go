@@ -1,8 +1,9 @@
 package controller
 
 import (
-	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/entity"
+	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
 
@@ -12,25 +13,31 @@ import (
 type DocController struct{}
 
 func (e *DocController) GetInfo(ctx *gin.Context) {
-	var query api.GetDocInfoQuery
+	var query entity.GetDocInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	docD := dao.DocDAO{}
-	docInfo, err := docD.Find(ctx, query.DocID)
+	doc, err := docD.Find(ctx, query.DocID)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.GetDocInfoResp{
-		Doc: docInfo,
+	docS := service.DocService{}
+	docInfo, err := docS.FormatDoc(ctx, doc)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	res := entity.GetDocInfoResp{
+		DocInfo: docInfo,
 	}
 	tools.RespSuccess(ctx, res)
 }
 
 func (e *DocController) Create(ctx *gin.Context) {
-	var payload api.CreateDocPayload
+	var payload entity.CreateDocPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -56,10 +63,14 @@ func (e *DocController) Create(ctx *gin.Context) {
 }
 
 func (e *DocController) Update(ctx *gin.Context) {
-	var payload api.UpdateDocPayload
+	var payload entity.UpdateDocPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
+	}
+	var authorID string
+	if userID, exist := ctx.Get("uid"); exist {
+		authorID = userID.(string)
 	}
 	docD := dao.DocDAO{}
 	docInfo, err := docD.Update(
@@ -75,18 +86,41 @@ func (e *DocController) Update(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
+	if payload.Public != nil && *payload.Public {
+		feedS := service.FeedService{}
+		_, err := feedS.SyncFeed(ctx, authorID, docInfo.AuthorID, docInfo.ID.Hex(), consts.DocFeed)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		tools.RespSuccess(ctx, docInfo)
+		return
+	}
+	feedD := dao.FeedDao{}
+	subjectIDs := append([]string{}, docInfo.ID.Hex())
+	delErr := feedD.DeleteManyBySubject(ctx, subjectIDs, consts.DocFeed)
+	if delErr != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
 	tools.RespSuccess(ctx, docInfo)
 }
 
 func (e *DocController) Delete(ctx *gin.Context) {
-	var payload api.DeleteDocPayload
+	var payload entity.DeleteDocPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	docD := dao.DocDAO{}
-	err := docD.Delete(ctx, payload.DocIDs)
+	err := docD.DeleteMany(ctx, payload.DocIDs)
 	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	feedD := dao.FeedDao{}
+	delErr := feedD.DeleteManyBySubject(ctx, payload.DocIDs, consts.DocFeed)
+	if delErr != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
@@ -94,7 +128,7 @@ func (e *DocController) Delete(ctx *gin.Context) {
 }
 
 func (e *DocController) SearchDocs(ctx *gin.Context) {
-	var query api.SearchDocsQuery
+	var query entity.SearchDocsQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -112,7 +146,7 @@ func (e *DocController) SearchDocs(ctx *gin.Context) {
 		asc = 1
 	}
 	docD := dao.DocDAO{}
-	docs, err := docD.FindDocs(ctx,
+	docs, err := docD.FindList(ctx,
 		query.Page,
 		query.PageSize,
 		userID,
@@ -125,21 +159,31 @@ func (e *DocController) SearchDocs(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.GetDocsResp{
+	docS := service.DocService{}
+	docList := []entity.DocInfo{}
+	for _, doc := range docs {
+		docInfo, err := docS.FormatDoc(ctx, doc)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		docList = append(docList, docInfo)
+	}
+	res := entity.GetDocsResp{
 		Total: len(docs),
-		List:  docs,
+		List:  docList,
 	}
 	tools.RespSuccess(ctx, res)
 }
 
 func (e *DocController) GetDrafts(ctx *gin.Context) {
-	var query api.GetDraftQuery
+	var query entity.GetDraftQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	docD := dao.DocDAO{}
-	drafts, err := docD.FindDraftsByDoc(ctx, query.DocID, query.Page, query.PageSize)
+	drafts, err := docD.FindDrafts(ctx, query.DocID, query.Page, query.PageSize)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
@@ -148,7 +192,7 @@ func (e *DocController) GetDrafts(ctx *gin.Context) {
 }
 
 func (e *DocController) UpdateDraft(ctx *gin.Context) {
-	var payload api.UpdateDraftPayload
+	var payload entity.UpdateDraftPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return

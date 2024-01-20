@@ -16,7 +16,73 @@ type FeedDao struct {
 	*tools.Mongo
 }
 
-func (e *FeedDao) FindFeedList(
+func (e *FeedDao) Create(ctx *gin.Context, creatorID string, subjectID string, subjectType string) (model.Feed, error) {
+	collection := e.GetDB().Collection("feed")
+	now := time.Now()
+	feed := model.Feed{
+		ID:           primitive.NewObjectID(),
+		CreatorID:    creatorID,
+		SubjectID:    subjectID,
+		SubjectType:  subjectType,
+		Likes:        []model.Like{},
+		LikesCount:   0,
+		CreationTime: now,
+		UpdateTime:   now,
+	}
+	_, err := collection.InsertOne(ctx, feed)
+	if err != nil {
+		return model.Feed{}, err
+	}
+	return feed, nil
+}
+
+func (e *FeedDao) Update(ctx *gin.Context, feedID string) (model.Feed, error) {
+	collection := e.GetDB().Collection("feed")
+	objID, err := primitive.ObjectIDFromHex(feedID)
+	if err != nil {
+		return model.Feed{}, err
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$set": bson.M{"update_time": time.Now()}}
+
+	var feed model.Feed
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	if err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&feed); err != nil {
+		return model.Feed{}, err
+	}
+	return feed, nil
+}
+
+func (e *FeedDao) DeleteMany(ctx *gin.Context, feedIDs []string) error {
+	collection := e.GetDB().Collection("feed")
+	var objIDs []primitive.ObjectID
+	for _, feedID := range feedIDs {
+		id, err := primitive.ObjectIDFromHex(feedID)
+		if err != nil {
+			return err
+		}
+		objIDs = append(objIDs, id)
+	}
+	filter := bson.M{"_id": bson.M{"$in": objIDs}}
+	if _, err := collection.DeleteMany(ctx, filter); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *FeedDao) DeleteManyBySubject(ctx *gin.Context, subjectIDs []string, subjectType string) error {
+	collection := e.GetDB().Collection("feed")
+	filter := bson.M{
+		"subject_id":   bson.M{"$in": subjectIDs},
+		"subject_type": subjectType,
+	}
+	if _, err := collection.DeleteMany(ctx, filter); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *FeedDao) FindList(
 	ctx *gin.Context,
 	page int,
 	pageSize int,
@@ -25,8 +91,8 @@ func (e *FeedDao) FindFeedList(
 	asc int,
 	authorID string,
 ) ([]model.Feed, error) {
-	collection := e.GetDB().Collection("doc")
-	filter := bson.M{"public": true}
+	collection := e.GetDB().Collection("feed")
+	filter := bson.M{}
 	if authorID != "" {
 		filter["author_id"] = authorID
 	}
@@ -52,27 +118,24 @@ func (e *FeedDao) FindFeedList(
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-	var feedList []model.Feed
-	if err := cursor.All(ctx, &feedList); err != nil {
+	var feeds []model.Feed
+	if err := cursor.All(ctx, &feeds); err != nil {
 		return nil, err
 	}
-	if feedList == nil {
-		feedList = []model.Feed{}
+	if feeds == nil {
+		feeds = []model.Feed{}
 	}
-
-	clone := []model.Feed{}
-	for _, feed := range feedList {
-		if feed.Likes == nil {
-			feed.Likes = []model.Like{}
+	for i := range feeds {
+		if feeds[i].Likes == nil {
+			feeds[i].Likes = []model.Like{}
 		}
-		feed.LikesCount = len(feed.Likes)
-		clone = append(clone, feed)
+		feeds[i].LikesCount = len(feeds[i].Likes)
 	}
-	return clone, nil
+	return feeds, nil
 }
 
-func (e *FeedDao) FindFeed(ctx *gin.Context, feedID string) (model.Feed, error) {
-	collection := e.GetDB().Collection("doc")
+func (e *FeedDao) Find(ctx *gin.Context, feedID string) (model.Feed, error) {
+	collection := e.GetDB().Collection("feed")
 	objID, err := primitive.ObjectIDFromHex(feedID)
 	if err != nil {
 		return model.Feed{}, err
@@ -86,44 +149,37 @@ func (e *FeedDao) FindFeed(ctx *gin.Context, feedID string) (model.Feed, error) 
 	if err := res.Decode(&feed); err != nil {
 		return model.Feed{}, err
 	}
+	if feed.Likes == nil {
+		feed.Likes = []model.Like{}
+	}
+	feed.LikesCount = len(feed.Likes)
 	return feed, nil
 }
 
-func (e *FeedDao) FindAuthorByID(ctx *gin.Context, userID string) (model.Author, error) {
-	collection := e.GetDB().Collection("user")
-	objID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return model.Author{}, err
+func (e *FeedDao) FindBySubject(ctx *gin.Context, subjectID string, subjectType string) (model.Feed, error) {
+	collection := e.GetDB().Collection("feed")
+	filter := bson.M{
+		"subject_id":   subjectID,
+		"subject_type": subjectType,
 	}
-	filter := bson.M{"_id": objID}
 	res := collection.FindOne(ctx, filter)
 	if err := res.Err(); err != nil {
-		return model.Author{}, err
-	}
-	var author model.Author
-	if err := res.Decode(&author); err != nil {
-		return model.Author{}, err
-	}
-	return author, nil
-}
-
-func (e *FeedDao) CheckLiked(ctx *gin.Context, userID string, feedID string) (bool, error) {
-	collection := e.GetDB().Collection("doc")
-	objID, err := primitive.ObjectIDFromHex(feedID)
-	if err != nil {
-		return false, err
-	}
-	filter := bson.M{"_id": objID}
-	res := collection.FindOne(ctx, filter)
-	if err := res.Err(); err != nil {
-		return false, err
+		return model.Feed{}, err
 	}
 	var feed model.Feed
 	if err := res.Decode(&feed); err != nil {
+		return model.Feed{}, err
+	}
+	feed.LikesCount = len(feed.Likes)
+	return feed, nil
+}
+
+func (e *FeedDao) CheckLiked(ctx *gin.Context, userID string, feedID string) (bool, error) {
+	feed, err := e.Find(ctx, feedID)
+	if err != nil {
 		return false, err
 	}
-	likes := feed.Likes
-	for _, like := range likes {
+	for _, like := range feed.Likes {
 		if like.UserID == userID {
 			return true, nil
 		}
@@ -132,7 +188,7 @@ func (e *FeedDao) CheckLiked(ctx *gin.Context, userID string, feedID string) (bo
 }
 
 func (e *FeedDao) Like(ctx *gin.Context, userID string, feedID string) error {
-	collection := e.GetDB().Collection("doc")
+	collection := e.GetDB().Collection("feed")
 	objID, err := primitive.ObjectIDFromHex(feedID)
 	if err != nil {
 		return err
@@ -141,8 +197,13 @@ func (e *FeedDao) Like(ctx *gin.Context, userID string, feedID string) error {
 	update := bson.M{
 		"$push": bson.M{
 			"likes": bson.M{
-				"user_id":       userID,
-				"creation_time": time.Now(),
+				"$each": []bson.M{
+					{
+						"user_id":       userID,
+						"creation_time": time.Now(),
+					},
+				},
+				"$position": 0,
 			},
 		},
 	}
@@ -151,7 +212,7 @@ func (e *FeedDao) Like(ctx *gin.Context, userID string, feedID string) error {
 }
 
 func (e *FeedDao) UnLike(ctx *gin.Context, userID string, feedID string) error {
-	collection := e.GetDB().Collection("doc")
+	collection := e.GetDB().Collection("feed")
 	objID, err := primitive.ObjectIDFromHex(feedID)
 	if err != nil {
 		return err

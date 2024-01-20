@@ -19,12 +19,6 @@ type Doc struct {
 	UpdateTime   time.Time          `json:"update_time" bson:"update_time"`
 }
 
-type Author struct {
-	UserID   primitive.ObjectID `json:"user_id" bson:"_id"`
-	Nickname string             `json:"nickname" bson:"nickname"`
-	Avatar   string             `json:"avatar" bson:"avatar"`
-}
-
 type Draft struct {
 	Content      string    `json:"content" bson:"content"`
 	CreationTime time.Time `json:"creation_time" bson:"creation_time"`

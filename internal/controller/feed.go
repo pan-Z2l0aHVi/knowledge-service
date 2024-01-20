@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/entity"
 	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
@@ -12,41 +12,33 @@ import (
 
 type FeedController struct{}
 
-func (e *FeedController) GetDetail(ctx *gin.Context) {
-	var query api.GetFeedDetailQuery
+func (e *FeedController) GetInfo(ctx *gin.Context) {
+	var query entity.GetFeedInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	feedD := dao.FeedDao{}
-	feed, err := feedD.FindFeed(ctx, query.FeedID)
+	feed, err := feedD.Find(ctx, query.FeedID)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	var userID string
-	var collectedFeedIDs []string
 	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
-		userD := dao.UserDAO{}
-		user, err := userD.FindByUserID(ctx, userID)
-		if err != nil {
-			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-			return
-		}
-		collectedFeedIDs = user.CollectedFeedIDs
 	}
 	feedS := service.FeedService{}
-	res, err := feedS.FormatFeed(ctx, feed, collectedFeedIDs)
+	feedInfo, err := feedS.FormatFeed(ctx, feed, userID)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	tools.RespSuccess(ctx, res)
+	tools.RespSuccess(ctx, feedInfo)
 }
 
 func (e *FeedController) SearchFeedList(ctx *gin.Context) {
-	var query api.SearchFeedsListQuery
+	var query entity.SearchFeedsListQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -58,7 +50,7 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 		asc = 1
 	}
 	feedD := dao.FeedDao{}
-	feedList, err := feedD.FindFeedList(
+	feeds, err := feedD.FindList(
 		ctx,
 		query.Page,
 		query.PageSize,
@@ -72,36 +64,24 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 		return
 	}
 	var userID string
-	var collectedFeedIDs []string
 	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
-		userD := dao.UserDAO{}
-		user, err := userD.FindByUserID(ctx, userID)
-		if err != nil {
-			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-			return
-		}
-		collectedFeedIDs = user.CollectedFeedIDs
 	}
 	feedS := service.FeedService{}
-	list := []api.FeedItem{}
-	for _, feed := range feedList {
-		feedItem, err := feedS.FormatFeed(ctx, feed, collectedFeedIDs)
-		if err != nil {
-			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-			return
-		}
-		list = append(list, feedItem)
+	feedList, err := feedS.FormatFeedList(ctx, feeds, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
 	}
-	res := api.GetFeedListResp{
-		Total: len(list),
-		List:  list,
+	res := entity.GetFeedListResp{
+		Total: len(feedList),
+		List:  feedList,
 	}
 	tools.RespSuccess(ctx, res)
 }
 
-func (e *FeedController) PraiseFeed(ctx *gin.Context) {
-	var payload api.PraiseFeedPayload
+func (e *FeedController) LikeFeed(ctx *gin.Context) {
+	var payload entity.LikeFeedPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return

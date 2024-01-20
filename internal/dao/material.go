@@ -34,7 +34,7 @@ func (e *MaterialDAO) Find(ctx *gin.Context, materialID string) (model.Material,
 	return materialInfo, nil
 }
 
-func (e *MaterialDAO) Search(
+func (e *MaterialDAO) FindList(
 	ctx *gin.Context,
 	materialType int,
 	keywords string,

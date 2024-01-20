@@ -3,7 +3,7 @@ package service
 import (
 	"encoding/json"
 	"io"
-	"knowledge-service/internal/api"
+	"knowledge-service/internal/entity"
 	"knowledge-service/pkg/consts"
 	"net/http"
 	"net/url"
@@ -13,21 +13,21 @@ import (
 
 type WallpaperService struct{}
 
-func (e *WallpaperService) ChSearchWallpaper(ch chan<- api.SearchWallpaperAPIRes, query api.SearchWallpaperQuery, page int) {
+func (e *WallpaperService) ChSearchWallpaper(ch chan<- entity.SearchWallpaperAPIRes, query entity.SearchWallpaperQuery, page int) {
 	query.Page = strconv.Itoa(page)
 	searchRes, err := e.SearchWallpaper(query)
 	if err != nil {
-		ch <- api.SearchWallpaperAPIRes{
+		ch <- entity.SearchWallpaperAPIRes{
 			Error: err,
 		}
 	} else {
-		ch <- api.SearchWallpaperAPIRes{
+		ch <- entity.SearchWallpaperAPIRes{
 			Result: searchRes,
 		}
 	}
 }
 
-func (e *WallpaperService) SearchWallpaper(query api.SearchWallpaperQuery) (api.SearchWallpaperResp, error) {
+func (e *WallpaperService) SearchWallpaper(query entity.SearchWallpaperQuery) (entity.SearchWallpaperResp, error) {
 	v := url.Values{}
 	v.Set("apikey", consts.APIKey)
 	v.Set("q", query.Keywords)
@@ -48,16 +48,16 @@ func (e *WallpaperService) SearchWallpaper(query api.SearchWallpaperQuery) (api.
 	}
 	resp, err := client.Get(consts.WallhavenAPI + "/search?" + v.Encode())
 	if err != nil {
-		return api.SearchWallpaperResp{}, err
+		return entity.SearchWallpaperResp{}, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return api.SearchWallpaperResp{}, err
+		return entity.SearchWallpaperResp{}, err
 	}
-	var result api.SearchWallpaperResp
+	var result entity.SearchWallpaperResp
 	if err = json.Unmarshal(body, &result); err != nil {
-		return api.SearchWallpaperResp{}, err
+		return entity.SearchWallpaperResp{}, err
 	}
 	return result, nil
 }

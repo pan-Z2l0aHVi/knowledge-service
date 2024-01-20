@@ -2,7 +2,7 @@ package dao
 
 import (
 	"encoding/json"
-	"knowledge-service/internal/api"
+	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
 	"knowledge-service/pkg/tools"
 	"time"
@@ -123,7 +123,7 @@ func (e *UserDAO) Update(ctx *gin.Context, userID string, nickname *string, avat
 	return user, nil
 }
 
-func (e *UserDAO) SetTempUserID(tempUserID string, userInfo api.WeChatUserInfo) error {
+func (e *UserDAO) SetTempUserID(tempUserID string, userInfo entity.WeChatUserInfo) error {
 	userJSON, err := json.Marshal(userInfo)
 	if err != nil {
 		return err
@@ -132,18 +132,18 @@ func (e *UserDAO) SetTempUserID(tempUserID string, userInfo api.WeChatUserInfo) 
 	return rds.Set(tempUserID, userJSON, 300*time.Second).Err()
 }
 
-func (e *UserDAO) GetTempUserIDUserInfo(tempUserID string) (api.WeChatUserInfo, error) {
+func (e *UserDAO) GetTempUserIDUserInfo(tempUserID string) (entity.WeChatUserInfo, error) {
 	rds := e.GetRDS()
 	resJSON, err := rds.Get(tempUserID).Result()
 	if err == redis.Nil {
-		return api.WeChatUserInfo{}, err
+		return entity.WeChatUserInfo{}, err
 	} else if err != nil {
-		return api.WeChatUserInfo{}, err
+		return entity.WeChatUserInfo{}, err
 	}
-	var userInfo api.WeChatUserInfo
+	var userInfo entity.WeChatUserInfo
 	err = json.Unmarshal([]byte(resJSON), &userInfo)
 	if err != nil {
-		return api.WeChatUserInfo{}, err
+		return entity.WeChatUserInfo{}, err
 	}
 	return userInfo, err
 }
@@ -236,14 +236,14 @@ func (e *UserDAO) RemoveWallpaperFromCollection(ctx *gin.Context, userID string,
 	return nil
 }
 
-func (e *UserDAO) FindCollectedWallpapers(ctx *gin.Context, userID string) ([]api.WallpaperItem, error) {
+func (e *UserDAO) FindCollectedWallpapers(ctx *gin.Context, userID string) ([]entity.WallpaperItem, error) {
 	user, err := e.FindByUserID(ctx, userID)
 	if err != nil {
-		return []api.WallpaperItem{}, err
+		return []entity.WallpaperItem{}, err
 	}
-	wallpapers := []api.WallpaperItem{}
+	wallpapers := []entity.WallpaperItem{}
 	for _, wallpaper := range user.CollectedWallpapers {
-		wallpapers = append(wallpapers, api.WallpaperItem{
+		wallpapers = append(wallpapers, entity.WallpaperItem{
 			Wallpaper: wallpaper,
 			Collected: true,
 		})

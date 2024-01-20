@@ -2,8 +2,8 @@ package controller
 
 import (
 	"fmt"
-	"knowledge-service/internal/api"
 	"knowledge-service/internal/dao"
+	"knowledge-service/internal/entity"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
 	"net/http"
@@ -49,14 +49,14 @@ func (e *CommonController) GetQiniuToken(ctx *gin.Context) {
 	putPolicy.Expires = 86400
 	mac := qbox.NewMac(consts.QINIU_ACCESS_KEY, consts.QINIU_SECRET_KEY)
 	upToken := putPolicy.UploadToken(mac)
-	res := api.GetBucketTokenResp{
+	res := entity.GetBucketTokenResp{
 		Token: upToken,
 	}
 	tools.RespSuccess(ctx, res)
 }
 
 func (e *CommonController) GetR2SignedURL(ctx *gin.Context) {
-	var query api.GetSignedURLQuery
+	var query entity.GetSignedURLQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
@@ -88,7 +88,7 @@ func (e *CommonController) GetR2SignedURL(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	res := api.GetSignedURLResp{
+	res := entity.GetSignedURLResp{
 		URL: presignResult.URL,
 	}
 	tools.RespSuccess(ctx, res)
