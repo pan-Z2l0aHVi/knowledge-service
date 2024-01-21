@@ -3,6 +3,7 @@ package controller
 import (
 	"knowledge-service/internal/dao"
 	"knowledge-service/internal/entity"
+	"knowledge-service/internal/model"
 	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
@@ -50,18 +51,47 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 		asc = 1
 	}
 	feedD := dao.FeedDao{}
-	feeds, err := feedD.FindList(
-		ctx,
-		query.Page,
-		query.PageSize,
-		query.Keywords,
-		query.SortBy,
-		asc,
-		query.AuthorID,
-	)
-	if err != nil {
-		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-		return
+	feeds := []model.Feed{}
+	if query.Keywords != "" {
+		trueBool := true
+		docD := dao.DocDAO{}
+		docs, err := docD.FindList(
+			ctx,
+			query.Page,
+			query.PageSize,
+			query.AuthorID,
+			"",
+			query.Keywords,
+			query.SortBy,
+			asc,
+			&trueBool,
+		)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		for _, doc := range docs {
+			feed, err := feedD.FindBySubject(ctx, doc.ID.Hex(), "doc")
+			if err != nil {
+				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+				return
+			}
+			feeds = append(feeds, feed)
+		}
+	} else {
+		list, err := feedD.FindList(
+			ctx,
+			query.Page,
+			query.PageSize,
+			query.SortBy,
+			asc,
+			query.AuthorID,
+		)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		feeds = list
 	}
 	var userID string
 	if uid, exist := ctx.Get("uid"); exist {

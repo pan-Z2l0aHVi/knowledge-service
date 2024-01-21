@@ -123,6 +123,7 @@ func (e *DocDAO) FindList(ctx *gin.Context,
 	keywords string,
 	sortBy string,
 	asc int,
+	public *bool,
 ) ([]model.Doc, error) {
 	collection := e.GetDB().Collection("doc")
 	filter := bson.M{}
@@ -138,6 +139,9 @@ func (e *DocDAO) FindList(ctx *gin.Context,
 	}
 	if spaceID != "" {
 		filter["space_id"] = spaceID
+	}
+	if public != nil {
+		filter["public"] = public
 	}
 	sort := bson.M{}
 	if sortBy != "" && asc != 0 {

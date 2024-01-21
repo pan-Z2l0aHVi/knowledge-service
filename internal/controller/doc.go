@@ -154,6 +154,7 @@ func (e *DocController) SearchDocs(ctx *gin.Context) {
 		query.Keywords,
 		query.SortBy,
 		asc,
+		nil,
 	)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)

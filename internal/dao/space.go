@@ -118,7 +118,9 @@ func (e *SpaceDAO) FindList(ctx *gin.Context,
 	if ownerID != "" {
 		filter["owner_id"] = ownerID
 	}
-	sort := bson.M{}
+	sort := bson.M{
+		"update_time": -1,
+	}
 	if sortBy != "" && asc != 0 {
 		sort[sortBy] = asc
 	}

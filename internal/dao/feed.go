@@ -3,7 +3,6 @@ package dao
 import (
 	"knowledge-service/internal/model"
 	"knowledge-service/pkg/tools"
-	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -86,7 +85,6 @@ func (e *FeedDao) FindList(
 	ctx *gin.Context,
 	page int,
 	pageSize int,
-	keywords string,
 	sortBy string,
 	asc int,
 	authorID string,
@@ -95,13 +93,6 @@ func (e *FeedDao) FindList(
 	filter := bson.M{}
 	if authorID != "" {
 		filter["author_id"] = authorID
-	}
-	if keywords != "" {
-		keywords := regexp.QuoteMeta(keywords)
-		filter["$or"] = []bson.M{
-			{"title": bson.M{"$regex": keywords, "$options": "i"}},
-			{"summary": bson.M{"$regex": keywords, "$options": "i"}},
-		}
 	}
 	sort := bson.M{}
 	if sortBy != "" && asc != 0 {
