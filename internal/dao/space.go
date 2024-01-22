@@ -81,9 +81,9 @@ func (e *SpaceDAO) Update(
 	return space, nil
 }
 
-func (e *SpaceDAO) Delete(ctx *gin.Context, spaceIDS []string) error {
+func (e *SpaceDAO) DeleteMany(ctx *gin.Context, spaceIDS []string) error {
 	collection := e.GetDB().Collection("space")
-	var objIDs []primitive.ObjectID
+	objIDs := []primitive.ObjectID{}
 	for _, spaceID := range spaceIDS {
 		id, err := primitive.ObjectIDFromHex(spaceID)
 		if err != nil {
@@ -135,12 +135,9 @@ func (e *SpaceDAO) FindList(ctx *gin.Context,
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-	var spaces []model.Space
+	spaces := []model.Space{}
 	if err := cursor.All(ctx, &spaces); err != nil {
 		return nil, err
-	}
-	if spaces == nil {
-		spaces = []model.Space{}
 	}
 	return spaces, nil
 }

@@ -61,12 +61,9 @@ func (e *MaterialDAO) FindList(
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-	var materialList []model.Material
+	materialList := []model.Material{}
 	if err := cursor.All(ctx, &materialList); err != nil {
 		return nil, err
-	}
-	if materialList == nil {
-		materialList = []model.Material{}
 	}
 	return materialList, nil
 }

@@ -5,7 +5,6 @@ import (
 	"io"
 	"knowledge-service/internal/dao"
 	"knowledge-service/internal/entity"
-	"knowledge-service/internal/model"
 	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
@@ -49,7 +48,6 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 	}
 	data := append(res1.Result.Data, res2.Result.Data...)
 
-	var collectedWallpapers []model.Wallpaper
 	if uid, exist := ctx.Get("uid"); exist {
 		userD := dao.UserDAO{}
 		user, err := userD.FindByUserID(ctx, uid.(string))
@@ -57,7 +55,7 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 			return
 		}
-		collectedWallpapers = user.CollectedWallpapers
+		collectedWallpapers := user.CollectedWallpapers
 		res := []entity.WallpaperItem{}
 		for _, item := range data {
 			collected := false

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io"
 	"knowledge-service/internal/dao"
 	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
@@ -99,22 +98,25 @@ func (e *UserService) GetGitHubToken(code string) (entity.GitHubTokenSuccessResp
 	if err != nil {
 		return entity.GitHubTokenSuccessResp{}, err
 	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
+	if resp.StatusCode != http.StatusOK {
+		return entity.GitHubTokenSuccessResp{}, errors.New("GitHub API request failed")
+	}
+	var tokenResp entity.GitHubTokenResp
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
 		return entity.GitHubTokenSuccessResp{}, err
 	}
-	tokenResp := entity.GitHubTokenResp{}
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return entity.GitHubTokenSuccessResp{}, err
+	if len(tokenResp.Error) > 0 {
+		return entity.GitHubTokenSuccessResp{}, errors.New(tokenResp.ErrorDescription)
 	}
 	successResp := entity.GitHubTokenSuccessResp{
 		AccessToken: tokenResp.AccessToken,
 		Scope:       tokenResp.Scope,
 		TokenType:   tokenResp.TokenType,
-	}
-	if len(tokenResp.Error) > 0 {
-		return entity.GitHubTokenSuccessResp{}, errors.New(tokenResp.ErrorDescription)
 	}
 	return successResp, nil
 }
@@ -125,6 +127,7 @@ func (e *UserService) GetGithubProfile(token string) (entity.GithubProfileResp, 
 		return entity.GithubProfileResp{}, err
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/json")
 	client := http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -132,13 +135,16 @@ func (e *UserService) GetGithubProfile(token string) (entity.GithubProfileResp, 
 	if err != nil {
 		return entity.GithubProfileResp{}, err
 	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return entity.GithubProfileResp{}, err
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
+	if resp.StatusCode != http.StatusOK {
+		return entity.GithubProfileResp{}, errors.New("GitHub API request failed")
 	}
-	profile := entity.GithubProfileResp{}
-	if err := json.Unmarshal(body, &profile); err != nil {
+	var profile entity.GithubProfileResp
+	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
 		return entity.GithubProfileResp{}, err
 	}
 	return profile, nil

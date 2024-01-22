@@ -80,7 +80,7 @@ func (e *SpaceController) Delete(ctx *gin.Context) {
 		return
 	}
 	spaceD := dao.SpaceDAO{}
-	err := spaceD.Delete(ctx, payload.SpaceIDs)
+	err := spaceD.DeleteMany(ctx, payload.SpaceIDs)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
