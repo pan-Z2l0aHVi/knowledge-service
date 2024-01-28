@@ -146,7 +146,7 @@ func (e *DocController) SearchDocs(ctx *gin.Context) {
 		asc = 1
 	}
 	docD := dao.DocDAO{}
-	docs, err := docD.FindList(ctx,
+	docs, total, err := docD.FindListWithTotal(ctx,
 		query.Page,
 		query.PageSize,
 		userID,
@@ -171,7 +171,7 @@ func (e *DocController) SearchDocs(ctx *gin.Context) {
 		docList = append(docList, docInfo)
 	}
 	res := entity.GetDocsResp{
-		Total: len(docs),
+		Total: total,
 		List:  docList,
 	}
 	tools.RespSuccess(ctx, res)
@@ -192,14 +192,14 @@ func (e *DocController) GetDrafts(ctx *gin.Context) {
 	tools.RespSuccess(ctx, drafts)
 }
 
-func (e *DocController) UpdateDraft(ctx *gin.Context) {
+func (e *DocController) UpdateDrafts(ctx *gin.Context) {
 	var payload entity.UpdateDraftPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
 	docD := dao.DocDAO{}
-	draft, err := docD.UpdateDraft(ctx, payload.DocID, payload.Content)
+	draft, err := docD.CreateDraft(ctx, payload.DocID, payload.Content)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return

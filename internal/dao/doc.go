@@ -100,7 +100,7 @@ func (e *DocDAO) Update(
 
 func (e *DocDAO) DeleteMany(ctx *gin.Context, docIDs []string) error {
 	collection := e.GetDB().Collection("doc")
-	var objIDs []primitive.ObjectID
+	objIDs := []primitive.ObjectID{}
 	for _, docID := range docIDs {
 		id, err := primitive.ObjectIDFromHex(docID)
 		if err != nil {
@@ -115,7 +115,7 @@ func (e *DocDAO) DeleteMany(ctx *gin.Context, docIDs []string) error {
 	return nil
 }
 
-func (e *DocDAO) FindList(ctx *gin.Context,
+func (e *DocDAO) FindListWithTotal(ctx *gin.Context,
 	page int,
 	pageSize int,
 	authorID string,
@@ -124,7 +124,7 @@ func (e *DocDAO) FindList(ctx *gin.Context,
 	sortBy string,
 	asc int,
 	public *bool,
-) ([]model.Doc, error) {
+) ([]model.Doc, int64, error) {
 	collection := e.GetDB().Collection("doc")
 	filter := bson.M{}
 	if keywords != "" {
@@ -155,17 +155,18 @@ func (e *DocDAO) FindList(ctx *gin.Context,
 		Sort:  sort,
 	})
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
-	var docs []model.Doc
+	docs := []model.Doc{}
 	if err := cursor.All(ctx, &docs); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	if docs == nil {
-		docs = []model.Doc{}
+	count, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
 	}
-	return docs, nil
+	return docs, count, nil
 }
 
 func (e *DocDAO) FindDrafts(ctx *gin.Context, docID string, page int, pageSize int) ([]model.Draft, error) {
@@ -201,17 +202,14 @@ func (e *DocDAO) FindDrafts(ctx *gin.Context, docID string, page int, pageSize i
 		return []model.Draft{}, err
 	}
 	defer cursor.Close(ctx)
-	var drafts []model.Draft
+	drafts := []model.Draft{}
 	if err := cursor.All(ctx, &drafts); err != nil {
 		return []model.Draft{}, err
-	}
-	if drafts == nil {
-		drafts = []model.Draft{}
 	}
 	return drafts, nil
 }
 
-func (e *DocDAO) UpdateDraft(ctx *gin.Context, docID string, content string) (model.Draft, error) {
+func (e *DocDAO) CreateDraft(ctx *gin.Context, docID string, content string) (model.Draft, error) {
 	collection := e.GetDB().Collection("doc")
 	objID, err := primitive.ObjectIDFromHex(docID)
 	if err != nil {

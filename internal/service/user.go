@@ -47,7 +47,7 @@ func (e *UserService) WechatLogin(
 }
 
 func (e *UserService) GithubLogin(ctx *gin.Context, code string) (model.User, error) {
-	tokenResp, err := e.GetGitHubToken(code)
+	tokenResp, err := e.getGitHubToken(code)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -75,7 +75,7 @@ func (e *UserService) GithubLogin(ctx *gin.Context, code string) (model.User, er
 	return user, nil
 }
 
-func (e *UserService) GetGitHubToken(code string) (entity.GitHubTokenSuccessResp, error) {
+func (e *UserService) getGitHubToken(code string) (entity.GitHubTokenSuccessResp, error) {
 	params := entity.GitHubTokenPayload{
 		ClientID:     consts.GithubClientID,
 		ClientSecret: consts.GithubClientSecret,

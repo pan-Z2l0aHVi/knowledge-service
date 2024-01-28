@@ -156,7 +156,9 @@ func (e *UserDAO) AddFeedIDToCollection(ctx *gin.Context, userID string, feedID 
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$push": bson.M{"collected_feed_ids": feedID}}
-	collection.UpdateOne(ctx, filter, update)
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -168,7 +170,9 @@ func (e *UserDAO) RemoveFeedIDFromCollection(ctx *gin.Context, userID string, fe
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$pull": bson.M{"collected_feed_ids": feedID}}
-	collection.UpdateOne(ctx, filter, update)
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -188,7 +192,9 @@ func (e *UserDAO) AddFollowedUserID(ctx *gin.Context, userID string, targetUserI
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$push": bson.M{"followed_user_ids": targetUserID}}
-	collection.UpdateOne(ctx, filter, update)
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -200,7 +206,9 @@ func (e *UserDAO) RemoveFollowedUserID(ctx *gin.Context, userID string, targetUs
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$pull": bson.M{"followed_user_ids": targetUserID}}
-	collection.UpdateOne(ctx, filter, update)
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -220,7 +228,9 @@ func (e *UserDAO) AddWallpaperToCollection(ctx *gin.Context, userID string, wall
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$push": bson.M{"collected_wallpapers": wallpaper}}
-	collection.UpdateOne(ctx, filter, update)
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -232,7 +242,9 @@ func (e *UserDAO) RemoveWallpaperFromCollection(ctx *gin.Context, userID string,
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$pull": bson.M{"collected_wallpapers": bson.M{"id": wallpaperID}}}
-	collection.UpdateOne(ctx, filter, update)
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
 	return nil
 }
 

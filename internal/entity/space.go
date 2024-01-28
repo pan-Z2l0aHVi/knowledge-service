@@ -35,6 +35,6 @@ type SearchSpacesQuery struct {
 }
 
 type GetSpacesResp struct {
-	Total int           `json:"total"`
+	Total int64         `json:"total"`
 	List  []model.Space `json:"list"`
 }

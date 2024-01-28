@@ -125,3 +125,67 @@ func (e *FeedService) SyncFeed(
 	}
 	return feedInfo, nil
 }
+
+func (e *FeedService) FormatComments(ctx *gin.Context, comments []model.Comment) ([]entity.CommentInfo, error) {
+	userD := dao.UserDAO{}
+	commentList := []entity.CommentInfo{}
+	for _, comment := range comments {
+		commentator, err := userD.FindByUserID(ctx, comment.UserID)
+		if err != nil {
+			return []entity.CommentInfo{}, err
+		}
+
+		replyInfos := []entity.ReplyInfo{}
+		for _, subComment := range comment.SubComments {
+			subCommentator, err := userD.FindByUserID(ctx, comment.UserID)
+			if err != nil {
+				return []entity.CommentInfo{}, err
+			}
+			replyInfos = append(replyInfos, entity.ReplyInfo{
+				SubComment: subComment,
+				Commentator: entity.Commentator{
+					ID:       subCommentator.UserID.Hex(),
+					Nickname: subCommentator.Nickname,
+					Avatar:   subCommentator.Avatar,
+				},
+			})
+		}
+
+		commentList = append(commentList, entity.CommentInfo{
+			Comment: comment,
+			Commentator: entity.Commentator{
+				ID:       comment.UserID,
+				Avatar:   commentator.Avatar,
+				Nickname: commentator.Nickname,
+			},
+			SubComments: replyInfos,
+		})
+	}
+	return commentList, nil
+}
+
+func (e *FeedService) FormatComment(ctx *gin.Context, comment model.Comment) (entity.CommentInfo, error) {
+	commentList := append([]model.Comment{}, comment)
+	list, err := e.FormatComments(ctx, commentList)
+	if err != nil {
+		return entity.CommentInfo{}, err
+	}
+	return list[0], nil
+}
+
+func (e *FeedService) FormatSubComment(ctx *gin.Context, subComment model.SubComment) (entity.ReplyInfo, error) {
+	userD := dao.UserDAO{}
+	user, err := userD.FindByUserID(ctx, subComment.UserID)
+	if err != nil {
+		return entity.ReplyInfo{}, err
+	}
+	replyInfo := entity.ReplyInfo{
+		SubComment: subComment,
+		Commentator: entity.Commentator{
+			ID:       user.UserID.Hex(),
+			Nickname: user.Nickname,
+			Avatar:   user.Avatar,
+		},
+	}
+	return replyInfo, nil
+}

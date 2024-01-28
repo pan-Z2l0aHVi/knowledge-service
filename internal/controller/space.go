@@ -107,7 +107,7 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 		asc = 1
 	}
 	spaceD := dao.SpaceDAO{}
-	spaces, err := spaceD.FindList(ctx,
+	spaces, total, err := spaceD.FindListWithTotal(ctx,
 		query.Page,
 		query.PageSize,
 		userID,
@@ -120,7 +120,7 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 		return
 	}
 	res := entity.GetSpacesResp{
-		Total: len(spaces),
+		Total: total,
 		List:  spaces,
 	}
 	tools.RespSuccess(ctx, res)

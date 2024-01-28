@@ -36,5 +36,4 @@ func registerRoutes(app *gin.Engine) {
 	router.InitFeedRouter(app)
 	router.InitSpaceRouter(app)
 	router.InitWallpaperRouter(app)
-	router.InitMaterialRouter(app)
 }

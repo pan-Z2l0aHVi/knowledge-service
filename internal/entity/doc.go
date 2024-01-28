@@ -48,7 +48,7 @@ type SearchDocsQuery struct {
 }
 
 type GetDocsResp struct {
-	Total int       `json:"total"`
+	Total int64     `json:"total"`
 	List  []DocInfo `json:"list"`
 }
 

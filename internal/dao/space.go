@@ -98,14 +98,14 @@ func (e *SpaceDAO) DeleteMany(ctx *gin.Context, spaceIDS []string) error {
 	return nil
 }
 
-func (e *SpaceDAO) FindList(ctx *gin.Context,
+func (e *SpaceDAO) FindListWithTotal(ctx *gin.Context,
 	page int,
 	pageSize int,
 	ownerID string,
 	keywords string,
 	sortBy string,
 	asc int,
-) ([]model.Space, error) {
+) ([]model.Space, int64, error) {
 	collection := e.GetDB().Collection("space")
 	filter := bson.M{}
 	if keywords != "" {
@@ -132,12 +132,16 @@ func (e *SpaceDAO) FindList(ctx *gin.Context,
 		Sort:  sort,
 	})
 	if err != nil {
-		return nil, err
+		return []model.Space{}, 0, err
 	}
 	defer cursor.Close(ctx)
 	spaces := []model.Space{}
 	if err := cursor.All(ctx, &spaces); err != nil {
-		return nil, err
+		return []model.Space{}, 0, err
 	}
-	return spaces, nil
+	count, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return []model.Space{}, 0, err
+	}
+	return spaces, count, nil
 }

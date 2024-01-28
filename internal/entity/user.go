@@ -17,7 +17,7 @@ type Profile struct {
 }
 
 type GetUserInfoQuery struct {
-	UserID string `form:"user_id"`
+	UserID string `form:"user_id" binding:"required"`
 }
 
 type UserItem struct {

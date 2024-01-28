@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"errors"
 	"knowledge-service/internal/model"
 	"knowledge-service/pkg/tools"
 	"time"
@@ -19,14 +20,16 @@ func (e *FeedDao) Create(ctx *gin.Context, creatorID string, subjectID string, s
 	collection := e.GetDB().Collection("feed")
 	now := time.Now()
 	feed := model.Feed{
-		ID:           primitive.NewObjectID(),
-		CreatorID:    creatorID,
-		SubjectID:    subjectID,
-		SubjectType:  subjectType,
-		Likes:        []model.Like{},
-		LikesCount:   0,
-		CreationTime: now,
-		UpdateTime:   now,
+		ID:            primitive.NewObjectID(),
+		CreatorID:     creatorID,
+		SubjectID:     subjectID,
+		SubjectType:   subjectType,
+		Likes:         []model.Like{},
+		LikesCount:    0,
+		Comments:      []model.Comment{},
+		CommentsCount: 0,
+		CreationTime:  now,
+		UpdateTime:    now,
 	}
 	_, err := collection.InsertOne(ctx, feed)
 	if err != nil {
@@ -54,7 +57,7 @@ func (e *FeedDao) Update(ctx *gin.Context, feedID string) (model.Feed, error) {
 
 func (e *FeedDao) DeleteMany(ctx *gin.Context, feedIDs []string) error {
 	collection := e.GetDB().Collection("feed")
-	var objIDs []primitive.ObjectID
+	objIDs := []primitive.ObjectID{}
 	for _, feedID := range feedIDs {
 		id, err := primitive.ObjectIDFromHex(feedID)
 		if err != nil {
@@ -81,18 +84,18 @@ func (e *FeedDao) DeleteManyBySubject(ctx *gin.Context, subjectIDs []string, sub
 	return nil
 }
 
-func (e *FeedDao) FindList(
+func (e *FeedDao) FindListWithTotal(
 	ctx *gin.Context,
 	page int,
 	pageSize int,
 	sortBy string,
 	asc int,
 	authorID string,
-) ([]model.Feed, error) {
+) ([]model.Feed, int64, error) {
 	collection := e.GetDB().Collection("feed")
 	filter := bson.M{}
 	if authorID != "" {
-		filter["author_id"] = authorID
+		filter["creator_id"] = authorID
 	}
 	sort := bson.M{}
 	if sortBy != "" && asc != 0 {
@@ -106,23 +109,28 @@ func (e *FeedDao) FindList(
 		Sort:  sort,
 	})
 	if err != nil {
-		return nil, err
+		return []model.Feed{}, 0, err
 	}
 	defer cursor.Close(ctx)
-	var feeds []model.Feed
+	feeds := []model.Feed{}
 	if err := cursor.All(ctx, &feeds); err != nil {
-		return nil, err
-	}
-	if feeds == nil {
-		feeds = []model.Feed{}
+		return []model.Feed{}, 0, err
 	}
 	for i := range feeds {
 		if feeds[i].Likes == nil {
 			feeds[i].Likes = []model.Like{}
 		}
 		feeds[i].LikesCount = len(feeds[i].Likes)
+		if feeds[i].Comments == nil {
+			feeds[i].Comments = []model.Comment{}
+		}
+		feeds[i].CommentsCount = getCommentCount(feeds[i].Comments)
 	}
-	return feeds, nil
+	count, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return []model.Feed{}, 0, err
+	}
+	return feeds, count, nil
 }
 
 func (e *FeedDao) Find(ctx *gin.Context, feedID string) (model.Feed, error) {
@@ -144,6 +152,10 @@ func (e *FeedDao) Find(ctx *gin.Context, feedID string) (model.Feed, error) {
 		feed.Likes = []model.Like{}
 	}
 	feed.LikesCount = len(feed.Likes)
+	if feed.Comments == nil {
+		feed.Comments = []model.Comment{}
+	}
+	feed.CommentsCount = getCommentCount(feed.Comments)
 	return feed, nil
 }
 
@@ -161,7 +173,14 @@ func (e *FeedDao) FindBySubject(ctx *gin.Context, subjectID string, subjectType 
 	if err := res.Decode(&feed); err != nil {
 		return model.Feed{}, err
 	}
+	if feed.Likes == nil {
+		feed.Likes = []model.Like{}
+	}
 	feed.LikesCount = len(feed.Likes)
+	if feed.Comments == nil {
+		feed.Comments = []model.Comment{}
+	}
+	feed.CommentsCount = getCommentCount(feed.Comments)
 	return feed, nil
 }
 
@@ -216,4 +235,294 @@ func (e *FeedDao) UnLike(ctx *gin.Context, userID string, feedID string) error {
 	}
 	_, err = collection.UpdateOne(ctx, filter, update)
 	return err
+}
+
+func (e *FeedDao) CreateComment(
+	ctx *gin.Context,
+	feedID string,
+	userID string,
+	content string,
+) (model.Comment, error) {
+	collection := e.GetDB().Collection("feed")
+	objID, err := primitive.ObjectIDFromHex(feedID)
+	if err != nil {
+		return model.Comment{}, err
+	}
+	newComment := model.Comment{
+		ID:           primitive.NewObjectID(),
+		FeedID:       feedID,
+		UserID:       userID,
+		Content:      content,
+		CreationTime: time.Now(),
+		UpdateTime:   time.Now(),
+		SubComments:  []model.SubComment{},
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{
+		"$push": bson.M{
+			"comments": bson.M{
+				"$each":     bson.A{newComment},
+				"$position": 0,
+			},
+		},
+	}
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return model.Comment{}, err
+	}
+	return newComment, nil
+}
+
+func (e *FeedDao) ReplyComment(
+	ctx *gin.Context,
+	feedID string,
+	commentID string,
+	userID string,
+	content string,
+) (model.SubComment, error) {
+	collection := e.GetDB().Collection("feed")
+	feedObjID, err := primitive.ObjectIDFromHex(feedID)
+	if err != nil {
+		return model.SubComment{}, err
+	}
+	commentObjID, err := primitive.ObjectIDFromHex(commentID)
+	if err != nil {
+		return model.SubComment{}, err
+	}
+	subComment := model.SubComment{
+		ID:             primitive.NewObjectID(),
+		UserID:         userID,
+		Content:        content,
+		CreationTime:   time.Now(),
+		UpdateTime:     time.Now(),
+		FeedID:         feedID,
+		ReplyCommentID: commentID,
+	}
+	filter := bson.M{
+		"_id": feedObjID,
+		"comments": bson.M{
+			"$elemMatch": bson.M{
+				"$or": []bson.M{
+					{"_id": commentObjID},
+					{"sub_comments._id": commentObjID},
+				},
+			},
+		},
+	}
+	update := bson.M{
+		"$push": bson.M{
+			"comments.$.sub_comments": bson.M{
+				"$each":     bson.A{subComment},
+				"$position": 0,
+			},
+		},
+	}
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return model.SubComment{}, err
+	}
+	return subComment, nil
+}
+
+func (e *FeedDao) DeleteComment(ctx *gin.Context, feedID string, commentID string, subCommentID string) error {
+	collection := e.GetDB().Collection("feed")
+	feedObjID, err := primitive.ObjectIDFromHex(feedID)
+	if err != nil {
+		return err
+	}
+	commentObjID, err := primitive.ObjectIDFromHex(commentID)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{
+		"_id": feedObjID,
+	}
+	update := bson.M{}
+	if subCommentID != "" {
+		subCommentObjID, err := primitive.ObjectIDFromHex(subCommentID)
+		if err != nil {
+			return err
+		}
+		filter["comments.sub_comments._id"] = subCommentObjID
+		update["$pull"] = bson.M{"comments.$.sub_comments": bson.M{"_id": subCommentObjID}}
+	} else {
+		filter["comments._id"] = commentObjID
+		update["$pull"] = bson.M{"comments": bson.M{"_id": commentObjID}}
+	}
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *FeedDao) UpdateComment(
+	ctx *gin.Context,
+	feedID string,
+	commentID string,
+	content string,
+) (model.Comment, error) {
+	collection := e.GetDB().Collection("feed")
+	feedObjID, err := primitive.ObjectIDFromHex(feedID)
+	if err != nil {
+		return model.Comment{}, err
+	}
+	commentObjID, err := primitive.ObjectIDFromHex(commentID)
+	if err != nil {
+		return model.Comment{}, err
+	}
+	filter := bson.M{
+		"_id":          feedObjID,
+		"comments._id": commentObjID,
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"comments.$.content":     content,
+			"comments.$.update_time": time.Now(),
+		},
+	}
+	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
+		return model.Comment{}, err
+	}
+	comment, err := e.FindComment(ctx, feedID, commentID)
+	if err != nil {
+		return model.Comment{}, err
+	}
+	return comment, nil
+}
+
+func (e *FeedDao) UpdateSubComment(
+	ctx *gin.Context,
+	feedID string,
+	commentID string,
+	subCommentID string,
+	newContent string,
+) (model.SubComment, error) {
+	collection := e.GetDB().Collection("feed")
+	feedObjID, err := primitive.ObjectIDFromHex(feedID)
+	if err != nil {
+		return model.SubComment{}, err
+	}
+	commentObjID, err := primitive.ObjectIDFromHex(commentID)
+	if err != nil {
+		return model.SubComment{}, err
+	}
+	subCommentObjID, err := primitive.ObjectIDFromHex(subCommentID)
+	if err != nil {
+		return model.SubComment{}, err
+	}
+	filter := bson.M{
+		"_id": feedObjID,
+		"comments": bson.M{
+			"$elemMatch": bson.M{
+				"_id":              commentObjID,
+				"sub_comments._id": subCommentObjID,
+			},
+		},
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"comments.$.sub_comments.$[subComment].content":     newContent,
+			"comments.$.sub_comments.$[subComment].update_time": time.Now(),
+		},
+	}
+	opts := options.Update().SetArrayFilters(options.ArrayFilters{
+		Filters: []interface{}{
+			bson.D{{Key: "subComment._id", Value: subCommentObjID}},
+		},
+	})
+	if _, err := collection.UpdateOne(ctx, filter, update, opts); err != nil {
+		return model.SubComment{}, err
+	}
+	subComment, err := e.FindSubComment(ctx, feedID, commentID, subCommentID)
+	if err != nil {
+		return model.SubComment{}, err
+	}
+	return subComment, nil
+}
+
+func (e *FeedDao) FindComment(
+	ctx *gin.Context,
+	feedID string,
+	commentID string,
+) (model.Comment, error) {
+	feed, err := e.Find(ctx, feedID)
+	if err != nil {
+		return model.Comment{}, err
+	}
+	for _, comment := range feed.Comments {
+		if comment.ID.Hex() == commentID {
+			return comment, nil
+		}
+	}
+	return model.Comment{}, errors.New("comment not found")
+}
+
+func (e *FeedDao) FindSubComment(
+	ctx *gin.Context,
+	feedID string,
+	commentID string,
+	subCommentID string,
+) (model.SubComment, error) {
+	comment, err := e.FindComment(ctx, feedID, commentID)
+	if err != nil {
+		return model.SubComment{}, err
+	}
+	if subCommentID != "" {
+		for _, subComment := range comment.SubComments {
+			if subComment.ID.Hex() == subCommentID {
+				return subComment, nil
+			}
+		}
+	}
+	return model.SubComment{}, errors.New("sub comment not found")
+}
+
+func (e *FeedDao) FindCommentListWithTotal(
+	ctx *gin.Context,
+	feedID string,
+	page int,
+	pageSize int,
+	sortBy string,
+	asc int,
+) ([]model.Comment, int, error) {
+	collection := e.GetDB().Collection("feed")
+	objID, err := primitive.ObjectIDFromHex(feedID)
+	if err != nil {
+		return []model.Comment{}, 0, err
+	}
+	pipeline := bson.A{
+		bson.M{"$match": bson.M{"_id": objID}},
+		bson.M{"$unwind": "$comments"},
+		bson.M{"$skip": int64((page - 1) * pageSize)},
+		bson.M{"$limit": int64(pageSize)},
+		bson.M{"$project": bson.M{
+			"_id":           "$comments._id",
+			"user_id":       "$comments.user_id",
+			"content":       "$comments.content",
+			"creation_time": "$comments.creation_time",
+			"update_time":   "$comments.update_time",
+			"feed_id":       "$comments.feed_id",
+			"sub_comments":  "$comments.sub_comments",
+		}},
+	}
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return []model.Comment{}, 0, err
+	}
+	defer cursor.Close(ctx)
+	feedComments := []model.Comment{}
+	if err := cursor.All(ctx, &feedComments); err != nil {
+		return []model.Comment{}, 0, err
+	}
+	feed, err := e.Find(ctx, feedID)
+	if err != nil {
+		return []model.Comment{}, 0, err
+	}
+	return feedComments, feed.CommentsCount, nil
+}
+
+func getCommentCount(comments []model.Comment) int {
+	total := len(comments)
+	for _, comment := range comments {
+		total += len(comment.SubComments)
+	}
+	return total
 }
