@@ -86,22 +86,23 @@ func (e *DocController) Update(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	if payload.Public != nil && *payload.Public {
-		feedS := service.FeedService{}
-		_, err := feedS.SyncFeed(ctx, authorID, docInfo.AuthorID, docInfo.ID.Hex(), consts.DocFeed)
-		if err != nil {
-			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-			return
+	if payload.Public != nil {
+		if *payload.Public {
+			feedS := service.FeedService{}
+			_, err := feedS.SyncFeed(ctx, authorID, docInfo.AuthorID, docInfo.ID.Hex(), consts.DocFeed)
+			if err != nil {
+				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+				return
+			}
+		} else {
+			feedD := dao.FeedDao{}
+			subjectIDs := append([]string{}, docInfo.ID.Hex())
+			delErr := feedD.DeleteManyBySubject(ctx, subjectIDs, consts.DocFeed)
+			if delErr != nil {
+				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+				return
+			}
 		}
-		tools.RespSuccess(ctx, docInfo)
-		return
-	}
-	feedD := dao.FeedDao{}
-	subjectIDs := append([]string{}, docInfo.ID.Hex())
-	delErr := feedD.DeleteManyBySubject(ctx, subjectIDs, consts.DocFeed)
-	if delErr != nil {
-		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-		return
 	}
 	tools.RespSuccess(ctx, docInfo)
 }
@@ -139,11 +140,17 @@ func (e *DocController) SearchDocs(ctx *gin.Context) {
 	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	}
+	if query.SortType == "" {
+		query.SortType = "desc"
+	}
 	var asc int
 	if query.SortType == "desc" {
 		asc = -1
 	} else if query.SortType == "asc" {
 		asc = 1
+	}
+	if query.SortBy == "" {
+		query.SortBy = "update_time"
 	}
 	docD := dao.DocDAO{}
 	docs, total, err := docD.FindListWithTotal(ctx,

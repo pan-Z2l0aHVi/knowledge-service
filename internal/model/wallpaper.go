@@ -11,6 +11,7 @@ type Wallpaper struct {
 	DimensionY  int      `json:"dimension_y" bson:"dimension_y"`
 	Ratio       string   `json:"ratio" bson:"ratio"`
 	Resolution  string   `json:"resolution" bson:"resolution"`
+	Favorites   int      `json:"favorites" bson:"favorites"`
 	File_size   int      `json:"file_size" bson:"file_size"`
 	File_type   string   `json:"file_type" bson:"file_type"`
 	Created_at  string   `json:"created_at" bson:"created_at"`

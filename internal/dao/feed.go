@@ -4,6 +4,7 @@ import (
 	"errors"
 	"knowledge-service/internal/model"
 	"knowledge-service/pkg/tools"
+	"sort"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -488,9 +489,11 @@ func (e *FeedDao) FindCommentListWithTotal(
 	if err != nil {
 		return []model.Comment{}, 0, err
 	}
+	sortStage := bson.M{"comments." + sortBy: asc}
 	pipeline := bson.A{
 		bson.M{"$match": bson.M{"_id": objID}},
 		bson.M{"$unwind": "$comments"},
+		bson.M{"$sort": sortStage},
 		bson.M{"$skip": int64((page - 1) * pageSize)},
 		bson.M{"$limit": int64(pageSize)},
 		bson.M{"$project": bson.M{
@@ -516,6 +519,9 @@ func (e *FeedDao) FindCommentListWithTotal(
 	if err != nil {
 		return []model.Comment{}, 0, err
 	}
+	for _, comment := range feedComments {
+		sort.Sort(ByUpdateTime(comment.SubComments))
+	}
 	return feedComments, feed.CommentsCount, nil
 }
 
@@ -525,4 +531,16 @@ func getCommentCount(comments []model.Comment) int {
 		total += len(comment.SubComments)
 	}
 	return total
+}
+
+type ByUpdateTime []model.SubComment
+
+func (a ByUpdateTime) Len() int {
+	return len(a)
+}
+func (a ByUpdateTime) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+func (a ByUpdateTime) Less(i, j int) bool {
+	return a[i].UpdateTime.After(a[j].UpdateTime)
 }

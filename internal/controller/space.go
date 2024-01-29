@@ -100,11 +100,17 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 	} else if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	}
+	if query.SortType == "" {
+		query.SortType = "desc"
+	}
 	var asc int
 	if query.SortType == "desc" {
 		asc = -1
 	} else if query.SortType == "asc" {
 		asc = 1
+	}
+	if query.SortBy == "" {
+		query.SortBy = "update_time"
 	}
 	spaceD := dao.SpaceDAO{}
 	spaces, total, err := spaceD.FindListWithTotal(ctx,

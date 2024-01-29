@@ -46,11 +46,17 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
+	if query.SortType == "" {
+		query.SortType = "desc"
+	}
 	var asc int
 	if query.SortType == "desc" {
 		asc = -1
 	} else if query.SortType == "asc" {
 		asc = 1
+	}
+	if query.SortBy == "" {
+		query.SortBy = "update_time"
 	}
 	feedD := dao.FeedDao{}
 	feeds := []model.Feed{}
@@ -193,11 +199,17 @@ func (e *FeedController) GetCommentList(ctx *gin.Context) {
 		return
 	}
 	feedD := dao.FeedDao{}
+	if query.SortType == "" {
+		query.SortType = "desc"
+	}
 	var asc int
 	if query.SortType == "desc" {
 		asc = -1
 	} else if query.SortType == "asc" {
 		asc = 1
+	}
+	if query.SortBy == "" {
+		query.SortBy = "update_time"
 	}
 	comments, total, err := feedD.FindCommentListWithTotal(ctx, query.FeedID, query.Page, query.PageSize, query.SortBy, asc)
 	if err != nil {
