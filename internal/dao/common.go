@@ -6,11 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CommonDao struct {
+type CommonDAO struct {
 	*tools.Mongo
 }
 
-func (e *CommonDao) InsertReport(ctx *gin.Context, jsonData []interface{}) error {
+func (e *CommonDAO) InsertReport(ctx *gin.Context, jsonData []interface{}) error {
 	collection := e.GetDB().Collection("fe_report")
 	_, err := collection.InsertMany(ctx, jsonData)
 	if err != nil {

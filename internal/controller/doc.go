@@ -95,7 +95,7 @@ func (e *DocController) Update(ctx *gin.Context) {
 				return
 			}
 		} else {
-			feedD := dao.FeedDao{}
+			feedD := dao.FeedDAO{}
 			subjectIDs := append([]string{}, docInfo.ID.Hex())
 			delErr := feedD.DeleteManyBySubject(ctx, subjectIDs, consts.DocFeed)
 			if delErr != nil {
@@ -119,7 +119,7 @@ func (e *DocController) Delete(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	delErr := feedD.DeleteManyBySubject(ctx, payload.DocIDs, consts.DocFeed)
 	if delErr != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)

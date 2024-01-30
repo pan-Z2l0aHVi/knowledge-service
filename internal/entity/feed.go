@@ -59,7 +59,8 @@ type Commentator struct {
 
 type ReplyInfo struct {
 	model.SubComment
-	Commentator Commentator `json:"commentator"`
+	Commentator      Commentator `json:"commentator"`
+	ReplyCommentator Commentator `json:"reply_commentator"`
 }
 
 type CommentInfo struct {
@@ -82,9 +83,10 @@ type CommentPayload struct {
 }
 
 type ReplyPayload struct {
-	FeedID    string `json:"feed_id" binding:"required"`
-	CommentID string `json:"comment_id"`
-	Content   string `json:"content" binding:"required"`
+	FeedID      string `json:"feed_id" binding:"required"`
+	CommentID   string `json:"comment_id"`
+	ReplyUserID string `json:"reply_user_id"`
+	Content     string `json:"content" binding:"required"`
 }
 
 type DeleteCommentPayload struct {
@@ -111,5 +113,5 @@ type CommentResp struct {
 
 type UpdateCommentResp struct {
 	CommentInfo
-	ReplyCommentID string `json:"reply_comment_id" bson:"reply_comment_id"`
+	ReplyUserID string `json:"reply_user_id" bson:"reply_user_id"`
 }

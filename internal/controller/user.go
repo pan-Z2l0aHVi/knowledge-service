@@ -246,7 +246,7 @@ func (e *UserController) GetCollectedFeeds(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	feedS := service.FeedService{}
 	feeds := []model.Feed{}
 	for _, feedID := range feedIDs {

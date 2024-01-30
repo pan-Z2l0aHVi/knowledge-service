@@ -99,7 +99,7 @@ func (e *FeedService) SyncFeed(
 	subjectID string,
 	subjectType string,
 ) (entity.FeedInfo, error) {
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	feed, err := feedD.FindBySubject(ctx, subjectID, subjectType)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -137,27 +137,24 @@ func (e *FeedService) FormatComments(ctx *gin.Context, comments []model.Comment)
 
 		replyInfos := []entity.ReplyInfo{}
 		for _, subComment := range comment.SubComments {
-			subCommentator, err := userD.FindByUserID(ctx, comment.UserID)
+			subCommentUser, err := userD.FindByUserID(ctx, subComment.UserID)
+			if err != nil {
+				return []entity.CommentInfo{}, err
+			}
+			replyUser, err := userD.FindByUserID(ctx, subComment.ReplyUserID)
 			if err != nil {
 				return []entity.CommentInfo{}, err
 			}
 			replyInfos = append(replyInfos, entity.ReplyInfo{
-				SubComment: subComment,
-				Commentator: entity.Commentator{
-					ID:       subCommentator.UserID.Hex(),
-					Nickname: subCommentator.Nickname,
-					Avatar:   subCommentator.Avatar,
-				},
+				SubComment:       subComment,
+				Commentator:      e.formatCommentator(subCommentUser),
+				ReplyCommentator: e.formatCommentator(replyUser),
 			})
 		}
 
 		commentList = append(commentList, entity.CommentInfo{
-			Comment: comment,
-			Commentator: entity.Commentator{
-				ID:       comment.UserID,
-				Avatar:   commentator.Avatar,
-				Nickname: commentator.Nickname,
-			},
+			Comment:     comment,
+			Commentator: e.formatCommentator(commentator),
 			SubComments: replyInfos,
 		})
 	}
@@ -173,19 +170,28 @@ func (e *FeedService) FormatComment(ctx *gin.Context, comment model.Comment) (en
 	return list[0], nil
 }
 
-func (e *FeedService) FormatSubComment(ctx *gin.Context, subComment model.SubComment) (entity.ReplyInfo, error) {
+func (e *FeedService) FormatSubComment(ctx *gin.Context, feedID string, commentID string, subComment model.SubComment) (entity.ReplyInfo, error) {
 	userD := dao.UserDAO{}
 	user, err := userD.FindByUserID(ctx, subComment.UserID)
 	if err != nil {
 		return entity.ReplyInfo{}, err
 	}
+	replyUser, err := userD.FindByUserID(ctx, subComment.ReplyUserID)
+	if err != nil {
+		return entity.ReplyInfo{}, err
+	}
 	replyInfo := entity.ReplyInfo{
-		SubComment: subComment,
-		Commentator: entity.Commentator{
-			ID:       user.UserID.Hex(),
-			Nickname: user.Nickname,
-			Avatar:   user.Avatar,
-		},
+		SubComment:       subComment,
+		Commentator:      e.formatCommentator(user),
+		ReplyCommentator: e.formatCommentator(replyUser),
 	}
 	return replyInfo, nil
+}
+
+func (e *FeedService) formatCommentator(user model.User) entity.Commentator {
+	return entity.Commentator{
+		ID:       user.UserID.Hex(),
+		Nickname: user.Nickname,
+		Avatar:   user.Avatar,
+	}
 }

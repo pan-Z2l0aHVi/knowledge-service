@@ -13,11 +13,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type FeedDao struct {
+type FeedDAO struct {
 	*tools.Mongo
 }
 
-func (e *FeedDao) Create(ctx *gin.Context, creatorID string, subjectID string, subjectType string) (model.Feed, error) {
+func (e *FeedDAO) Create(ctx *gin.Context, creatorID string, subjectID string, subjectType string) (model.Feed, error) {
 	collection := e.GetDB().Collection("feed")
 	now := time.Now()
 	feed := model.Feed{
@@ -39,7 +39,7 @@ func (e *FeedDao) Create(ctx *gin.Context, creatorID string, subjectID string, s
 	return feed, nil
 }
 
-func (e *FeedDao) Update(ctx *gin.Context, feedID string) (model.Feed, error) {
+func (e *FeedDAO) Update(ctx *gin.Context, feedID string) (model.Feed, error) {
 	collection := e.GetDB().Collection("feed")
 	objID, err := primitive.ObjectIDFromHex(feedID)
 	if err != nil {
@@ -56,7 +56,7 @@ func (e *FeedDao) Update(ctx *gin.Context, feedID string) (model.Feed, error) {
 	return feed, nil
 }
 
-func (e *FeedDao) DeleteMany(ctx *gin.Context, feedIDs []string) error {
+func (e *FeedDAO) DeleteMany(ctx *gin.Context, feedIDs []string) error {
 	collection := e.GetDB().Collection("feed")
 	objIDs := []primitive.ObjectID{}
 	for _, feedID := range feedIDs {
@@ -73,7 +73,7 @@ func (e *FeedDao) DeleteMany(ctx *gin.Context, feedIDs []string) error {
 	return nil
 }
 
-func (e *FeedDao) DeleteManyBySubject(ctx *gin.Context, subjectIDs []string, subjectType string) error {
+func (e *FeedDAO) DeleteManyBySubject(ctx *gin.Context, subjectIDs []string, subjectType string) error {
 	collection := e.GetDB().Collection("feed")
 	filter := bson.M{
 		"subject_id":   bson.M{"$in": subjectIDs},
@@ -85,7 +85,7 @@ func (e *FeedDao) DeleteManyBySubject(ctx *gin.Context, subjectIDs []string, sub
 	return nil
 }
 
-func (e *FeedDao) FindListWithTotal(
+func (e *FeedDAO) FindListWithTotal(
 	ctx *gin.Context,
 	page int,
 	pageSize int,
@@ -134,7 +134,7 @@ func (e *FeedDao) FindListWithTotal(
 	return feeds, count, nil
 }
 
-func (e *FeedDao) Find(ctx *gin.Context, feedID string) (model.Feed, error) {
+func (e *FeedDAO) Find(ctx *gin.Context, feedID string) (model.Feed, error) {
 	collection := e.GetDB().Collection("feed")
 	objID, err := primitive.ObjectIDFromHex(feedID)
 	if err != nil {
@@ -160,7 +160,7 @@ func (e *FeedDao) Find(ctx *gin.Context, feedID string) (model.Feed, error) {
 	return feed, nil
 }
 
-func (e *FeedDao) FindBySubject(ctx *gin.Context, subjectID string, subjectType string) (model.Feed, error) {
+func (e *FeedDAO) FindBySubject(ctx *gin.Context, subjectID string, subjectType string) (model.Feed, error) {
 	collection := e.GetDB().Collection("feed")
 	filter := bson.M{
 		"subject_id":   subjectID,
@@ -185,7 +185,7 @@ func (e *FeedDao) FindBySubject(ctx *gin.Context, subjectID string, subjectType 
 	return feed, nil
 }
 
-func (e *FeedDao) CheckLiked(ctx *gin.Context, userID string, feedID string) (bool, error) {
+func (e *FeedDAO) CheckLiked(ctx *gin.Context, userID string, feedID string) (bool, error) {
 	feed, err := e.Find(ctx, feedID)
 	if err != nil {
 		return false, err
@@ -198,7 +198,7 @@ func (e *FeedDao) CheckLiked(ctx *gin.Context, userID string, feedID string) (bo
 	return false, nil
 }
 
-func (e *FeedDao) Like(ctx *gin.Context, userID string, feedID string) error {
+func (e *FeedDAO) Like(ctx *gin.Context, userID string, feedID string) error {
 	collection := e.GetDB().Collection("feed")
 	objID, err := primitive.ObjectIDFromHex(feedID)
 	if err != nil {
@@ -222,7 +222,7 @@ func (e *FeedDao) Like(ctx *gin.Context, userID string, feedID string) error {
 	return err
 }
 
-func (e *FeedDao) UnLike(ctx *gin.Context, userID string, feedID string) error {
+func (e *FeedDAO) UnLike(ctx *gin.Context, userID string, feedID string) error {
 	collection := e.GetDB().Collection("feed")
 	objID, err := primitive.ObjectIDFromHex(feedID)
 	if err != nil {
@@ -238,7 +238,7 @@ func (e *FeedDao) UnLike(ctx *gin.Context, userID string, feedID string) error {
 	return err
 }
 
-func (e *FeedDao) CreateComment(
+func (e *FeedDAO) CreateComment(
 	ctx *gin.Context,
 	feedID string,
 	userID string,
@@ -273,10 +273,11 @@ func (e *FeedDao) CreateComment(
 	return newComment, nil
 }
 
-func (e *FeedDao) ReplyComment(
+func (e *FeedDAO) ReplyComment(
 	ctx *gin.Context,
 	feedID string,
 	commentID string,
+	replyUserID string,
 	userID string,
 	content string,
 ) (model.SubComment, error) {
@@ -290,13 +291,13 @@ func (e *FeedDao) ReplyComment(
 		return model.SubComment{}, err
 	}
 	subComment := model.SubComment{
-		ID:             primitive.NewObjectID(),
-		UserID:         userID,
-		Content:        content,
-		CreationTime:   time.Now(),
-		UpdateTime:     time.Now(),
-		FeedID:         feedID,
-		ReplyCommentID: commentID,
+		ID:           primitive.NewObjectID(),
+		UserID:       userID,
+		Content:      content,
+		CreationTime: time.Now(),
+		UpdateTime:   time.Now(),
+		FeedID:       feedID,
+		ReplyUserID:  replyUserID,
 	}
 	filter := bson.M{
 		"_id": feedObjID,
@@ -323,7 +324,7 @@ func (e *FeedDao) ReplyComment(
 	return subComment, nil
 }
 
-func (e *FeedDao) DeleteComment(ctx *gin.Context, feedID string, commentID string, subCommentID string) error {
+func (e *FeedDAO) DeleteComment(ctx *gin.Context, feedID string, commentID string, subCommentID string) error {
 	collection := e.GetDB().Collection("feed")
 	feedObjID, err := primitive.ObjectIDFromHex(feedID)
 	if err != nil {
@@ -354,7 +355,7 @@ func (e *FeedDao) DeleteComment(ctx *gin.Context, feedID string, commentID strin
 	return nil
 }
 
-func (e *FeedDao) UpdateComment(
+func (e *FeedDAO) UpdateComment(
 	ctx *gin.Context,
 	feedID string,
 	commentID string,
@@ -389,7 +390,7 @@ func (e *FeedDao) UpdateComment(
 	return comment, nil
 }
 
-func (e *FeedDao) UpdateSubComment(
+func (e *FeedDAO) UpdateSubComment(
 	ctx *gin.Context,
 	feedID string,
 	commentID string,
@@ -439,7 +440,7 @@ func (e *FeedDao) UpdateSubComment(
 	return subComment, nil
 }
 
-func (e *FeedDao) FindComment(
+func (e *FeedDAO) FindComment(
 	ctx *gin.Context,
 	feedID string,
 	commentID string,
@@ -456,7 +457,7 @@ func (e *FeedDao) FindComment(
 	return model.Comment{}, errors.New("comment not found")
 }
 
-func (e *FeedDao) FindSubComment(
+func (e *FeedDAO) FindSubComment(
 	ctx *gin.Context,
 	feedID string,
 	commentID string,
@@ -476,7 +477,7 @@ func (e *FeedDao) FindSubComment(
 	return model.SubComment{}, errors.New("sub comment not found")
 }
 
-func (e *FeedDao) FindCommentListWithTotal(
+func (e *FeedDAO) FindCommentListWithTotal(
 	ctx *gin.Context,
 	feedID string,
 	page int,

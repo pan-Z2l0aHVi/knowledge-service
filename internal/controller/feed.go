@@ -19,7 +19,7 @@ func (e *FeedController) GetInfo(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	feed, err := feedD.Find(ctx, query.FeedID)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
@@ -58,7 +58,7 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 	if query.SortBy == "" {
 		query.SortBy = "update_time"
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	feeds := []model.Feed{}
 	var feedsTotal int64 = 0
 	if query.Keywords != "" {
@@ -131,7 +131,7 @@ func (e *FeedController) LikeFeed(ctx *gin.Context) {
 	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	liked, err := feedD.CheckLiked(ctx, userID, payload.FeedID)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
@@ -175,7 +175,7 @@ func (e *FeedController) Comment(ctx *gin.Context) {
 	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	comment, err := feedD.CreateComment(ctx, payload.FeedID, userID, payload.Content)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
@@ -198,7 +198,7 @@ func (e *FeedController) GetCommentList(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	if query.SortType == "" {
 		query.SortType = "desc"
 	}
@@ -239,14 +239,21 @@ func (e *FeedController) Reply(ctx *gin.Context) {
 	if uid, exist := ctx.Get("uid"); exist {
 		userID = uid.(string)
 	}
-	feedD := dao.FeedDao{}
-	subComment, err := feedD.ReplyComment(ctx, payload.FeedID, payload.CommentID, userID, payload.Content)
+	feedD := dao.FeedDAO{}
+	subComment, err := feedD.ReplyComment(
+		ctx,
+		payload.FeedID,
+		payload.CommentID,
+		payload.ReplyUserID,
+		userID,
+		payload.Content,
+	)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	feedS := service.FeedService{}
-	replyInfo, err := feedS.FormatSubComment(ctx, subComment)
+	replyInfo, err := feedS.FormatSubComment(ctx, payload.FeedID, payload.CommentID, subComment)
 	if err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
@@ -260,7 +267,7 @@ func (e *FeedController) DeleteComment(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	if err := feedD.DeleteComment(ctx, payload.FeedID, payload.CommentID, payload.SubCommentID); err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
@@ -274,7 +281,7 @@ func (e *FeedController) UpdateComment(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
-	feedD := dao.FeedDao{}
+	feedD := dao.FeedDAO{}
 	feedS := service.FeedService{}
 	if payload.SubCommentID != "" {
 		subComment, err := feedD.UpdateSubComment(ctx, payload.FeedID, payload.CommentID, payload.SubCommentID, payload.Content)
@@ -282,7 +289,7 @@ func (e *FeedController) UpdateComment(ctx *gin.Context) {
 			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 			return
 		}
-		subCommentInfo, err := feedS.FormatSubComment(ctx, subComment)
+		subCommentInfo, err := feedS.FormatSubComment(ctx, payload.FeedID, payload.CommentID, subComment)
 		if err != nil {
 			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 			return

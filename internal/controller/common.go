@@ -34,7 +34,7 @@ func (e *CommonController) Report(ctx *gin.Context) {
 		obj["ip"] = ctx.ClientIP()
 		obj["ua"] = ctx.Request.UserAgent()
 	}
-	commonD := dao.CommonDao{}
+	commonD := dao.CommonDAO{}
 	if err := commonD.InsertReport(ctx, jsonData); err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return

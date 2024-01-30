@@ -35,11 +35,11 @@ type Comment struct {
 }
 
 type SubComment struct {
-	ID             primitive.ObjectID `json:"id" bson:"_id"`
-	UserID         string             `json:"user_id" bson:"user_id"`
-	Content        string             `json:"content" bson:"content"`
-	CreationTime   time.Time          `json:"creation_time" bson:"creation_time"`
-	UpdateTime     time.Time          `json:"update_time" bson:"update_time"`
-	FeedID         string             `json:"feed_id" bson:"feed_id"`
-	ReplyCommentID string             `json:"reply_comment_id" bson:"reply_comment_id"`
+	ID           primitive.ObjectID `json:"id" bson:"_id"`
+	UserID       string             `json:"user_id" bson:"user_id"`
+	Content      string             `json:"content" bson:"content"`
+	CreationTime time.Time          `json:"creation_time" bson:"creation_time"`
+	UpdateTime   time.Time          `json:"update_time" bson:"update_time"`
+	FeedID       string             `json:"feed_id" bson:"feed_id"`
+	ReplyUserID  string             `json:"reply_user_id" bson:"reply_user_id"`
 }
