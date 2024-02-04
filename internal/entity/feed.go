@@ -113,5 +113,16 @@ type CommentResp struct {
 
 type UpdateCommentResp struct {
 	CommentInfo
-	ReplyUserID string `json:"reply_user_id" bson:"reply_user_id"`
+	ReplyUserID string `json:"reply_user_id"`
+}
+
+type GetRelatedFeedsQuery struct {
+	Page     int    `form:"page" binding:"required"`
+	PageSize int    `form:"page_size" binding:"required"`
+	SpaceID  string `form:"space_id" binding:"required"`
+}
+
+type GetRelatedFeedsResp struct {
+	Total int64      `json:"total"`
+	List  []FeedInfo `json:"list"`
 }

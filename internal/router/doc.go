@@ -15,6 +15,7 @@ func InitRDocRouter(app *gin.Engine) {
 	group.POST("/create", middleware.VerifyToken(), docC.Create)
 	group.POST("/update", middleware.VerifyToken(), docC.Update)
 	group.POST("/delete", middleware.VerifyToken(), docC.Delete)
+
 	group.GET("/drafts", middleware.VerifyToken(), docC.GetDrafts)
 	group.PUT("/update_drafts", middleware.VerifyToken(), docC.UpdateDrafts)
 }

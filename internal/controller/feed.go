@@ -81,7 +81,7 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 		}
 		feedsTotal = total
 		for _, doc := range docs {
-			feed, err := feedD.FindBySubject(ctx, doc.ID.Hex(), "doc")
+			feed, err := feedD.FindBySubject(ctx, doc.ID.Hex(), consts.DocFeed)
 			if err != nil {
 				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 				return
@@ -308,4 +308,54 @@ func (e *FeedController) UpdateComment(ctx *gin.Context) {
 		return
 	}
 	tools.RespSuccess(ctx, commentInfo)
+}
+
+func (e *FeedController) GetRelatedFeeds(ctx *gin.Context) {
+	var query entity.GetRelatedFeedsQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
+		return
+	}
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	trueBool := true
+	docD := dao.DocDAO{}
+	feedD := dao.FeedDAO{}
+	docs, total, err := docD.FindListWithTotal(
+		ctx,
+		query.Page,
+		query.PageSize,
+		"",
+		query.SpaceID,
+		"",
+		"update_time",
+		-1,
+		&trueBool,
+	)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	feeds := []model.Feed{}
+	for _, doc := range docs {
+		feed, err := feedD.FindBySubject(ctx, doc.ID.Hex(), consts.DocFeed)
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
+		feeds = append(feeds, feed)
+	}
+	feedS := service.FeedService{}
+	feedList, err := feedS.FormatFeedList(ctx, feeds, userID)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	res := entity.GetRelatedFeedsResp{
+		Total: total,
+		List:  feedList,
+	}
+	tools.RespSuccess(ctx, res)
 }

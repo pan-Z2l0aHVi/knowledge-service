@@ -20,4 +20,6 @@ func InitFeedRouter(app *gin.Engine) {
 	group.POST("/reply", middleware.VerifyToken(), feedC.Reply)
 	group.POST("/comment_update", middleware.VerifyToken(), feedC.UpdateComment)
 	group.POST("/comment_delete", middleware.VerifyToken(), feedC.DeleteComment)
+
+	group.GET("/related_feeds", middleware.UseToken(), feedC.GetRelatedFeeds)
 }

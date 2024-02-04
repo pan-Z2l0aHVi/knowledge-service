@@ -11,5 +11,6 @@ func InitCommonRouter(app *gin.Engine) {
 	commonC := controller.CommonController{}
 	group.GET("/qiniu_token", commonC.GetQiniuToken)
 	group.GET("/r2_signed_url", commonC.GetR2SignedURL)
+
 	group.POST("/report", commonC.Report)
 }
