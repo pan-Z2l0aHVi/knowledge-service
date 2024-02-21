@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -135,9 +134,7 @@ func (e *UserDAO) SetTempUserID(tempUserID string, userInfo entity.WeChatUserInf
 func (e *UserDAO) GetTempUserIDUserInfo(tempUserID string) (entity.WeChatUserInfo, error) {
 	rds := e.GetRDS()
 	resJSON, err := rds.Get(tempUserID).Result()
-	if err == redis.Nil {
-		return entity.WeChatUserInfo{}, err
-	} else if err != nil {
+	if err != nil {
 		return entity.WeChatUserInfo{}, err
 	}
 	var userInfo entity.WeChatUserInfo

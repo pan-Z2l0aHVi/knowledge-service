@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"knowledge-service/internal/dao"
 	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
@@ -102,7 +103,7 @@ func (e *FeedService) SyncFeed(
 	feedD := dao.FeedDAO{}
 	feed, err := feedD.FindBySubject(ctx, subjectID, subjectType)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			newFeed, err := feedD.Create(ctx, creatorID, subjectID, subjectType)
 			if err != nil {
 				return entity.FeedInfo{}, err

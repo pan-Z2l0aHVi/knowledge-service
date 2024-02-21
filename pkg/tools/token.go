@@ -7,13 +7,13 @@ import (
 )
 
 const (
-	JWTTokenSecretKey = "jwt"
+	JWTTokenSecretKey = "mmr"
 )
 
 func CreateToken(userID string) (string, error) {
 	claims := jwt.MapClaims{
 		"uid": userID,
-		"exp": time.Now().Add(time.Hour * 24 * 14).Unix(),
+		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(JWTTokenSecretKey))

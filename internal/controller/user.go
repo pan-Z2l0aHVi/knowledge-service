@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"knowledge-service/internal/dao"
@@ -252,7 +253,7 @@ func (e *UserController) GetCollectedFeeds(ctx *gin.Context) {
 	for _, feedID := range feedIDs {
 		feed, err := feedD.Find(ctx, feedID)
 		if err != nil {
-			if err == mongo.ErrNoDocuments {
+			if errors.Is(err, mongo.ErrNoDocuments) {
 				continue
 			}
 			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
