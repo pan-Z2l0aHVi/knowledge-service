@@ -100,15 +100,29 @@ func (e *FeedDAO) FindListWithTotal(
 	}
 	sort := bson.M{}
 	if sortBy != "" && asc != 0 {
-		sort[sortBy] = asc
+		sort["subject."+sortBy] = asc
 	}
 	skip := int64((page - 1) * pageSize)
 	limit := int64(pageSize)
-	cursor, err := collection.Find(ctx, filter, &options.FindOptions{
-		Skip:  &skip,
-		Limit: &limit,
-		Sort:  sort,
-	})
+	pipeline := bson.A{
+		bson.M{
+			"$addFields": bson.M{
+				"subject_id_objectid": bson.M{"$toObjectId": "$subject_id"},
+			},
+		},
+		bson.M{"$lookup": bson.M{
+			"from":         "doc",
+			"localField":   "subject_id_objectid",
+			"foreignField": "_id",
+			"as":           "subject",
+		}},
+		bson.M{"$unwind": "$subject"},
+		bson.M{"$match": filter},
+		bson.M{"$sort": sort},
+		bson.M{"$skip": skip},
+		bson.M{"$limit": limit},
+	}
+	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return []model.Feed{}, 0, err
 	}
