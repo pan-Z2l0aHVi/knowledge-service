@@ -34,3 +34,7 @@ knowledge
 
 # Key
 pan.pem
+
+# Configure
+app_local.json
+app_prd.json
