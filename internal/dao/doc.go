@@ -225,6 +225,7 @@ func (e *DocDAO) CreateDraft(ctx *gin.Context, docID string, content string) (mo
 			"drafts": bson.M{
 				"$each":     bson.A{newDraft},
 				"$position": 0,
+				"$slice":    100,
 			},
 		},
 	}
