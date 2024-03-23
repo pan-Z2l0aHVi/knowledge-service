@@ -21,25 +21,54 @@ import (
 type CommonController struct{}
 
 func (e *CommonController) Report(ctx *gin.Context) {
-	var jsonData []interface{}
-	if err := ctx.ShouldBindJSON(&jsonData); err != nil {
+	var payload entity.ReportPayload
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	for i := range jsonData {
-		obj, ok := jsonData[i].(map[string]interface{})
+	var userID string
+	if uid, exist := ctx.Get("uid"); exist {
+		userID = uid.(string)
+	}
+	for i := range payload.Data {
+		obj, ok := payload.Data[i].(map[string]interface{})
 		if !ok {
 			continue
 		}
+		obj["uid"] = userID
 		obj["ip"] = ctx.ClientIP()
 		obj["ua"] = ctx.Request.UserAgent()
 	}
 	commonD := dao.CommonDAO{}
-	if err := commonD.InsertReport(ctx, jsonData); err != nil {
+	if err := commonD.InsertReport(ctx, payload.Data); err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
 	ctx.Status(http.StatusNoContent)
+}
+
+func (e *CommonController) GetStatics(ctx *gin.Context) {
+	var query entity.GetStaticsQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	commonD := dao.CommonDAO{}
+	pvCount, err := commonD.FindPVCount(ctx, query.StartTimestamp, query.EndTimestamp)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	uvCount, err := commonD.FindUVCount(ctx, query.StartTimestamp, query.EndTimestamp)
+	if err != nil {
+		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		return
+	}
+	res := entity.GetStaticsResp{
+		PV: pvCount,
+		UV: uvCount,
+	}
+	tools.RespSuccess(ctx, res)
 }
 
 func (e *CommonController) GetQiniuToken(ctx *gin.Context) {
