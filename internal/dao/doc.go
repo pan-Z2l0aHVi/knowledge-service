@@ -234,3 +234,18 @@ func (e *DocDAO) CreateDraft(ctx *gin.Context, docID string, content string) (mo
 	}
 	return newDraft, nil
 }
+
+func (e *DocDAO) FindManyBySpace(ctx *gin.Context, spaceID string) ([]model.Doc, error) {
+	collection := e.GetDB().Collection("doc")
+	filter := bson.M{"space_id": spaceID}
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return []model.Doc{}, err
+	}
+	defer cursor.Close(ctx)
+	docs := []model.Doc{}
+	if err := cursor.All(ctx, &docs); err != nil {
+		return []model.Doc{}, err
+	}
+	return docs, nil
+}

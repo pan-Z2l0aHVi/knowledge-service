@@ -27,9 +27,9 @@ func (e *CommonDAO) FindPVCount(ctx *gin.Context, startTimestamp int64, endTimes
 		endTimestamp = time.Now().UnixMilli()
 	}
 	filter := bson.M{
-		"timestamp": bson.M{
-			"$gte": startTimestamp,
-			"$lte": endTimestamp,
+		"date": bson.M{
+			"$gte": time.UnixMilli(startTimestamp),
+			"$lte": time.UnixMilli(endTimestamp),
 		},
 	}
 	return collection.CountDocuments(ctx, filter)
@@ -41,9 +41,9 @@ func (e *CommonDAO) FindUVCount(ctx *gin.Context, startTimestamp, endTimestamp i
 		endTimestamp = time.Now().UnixMilli()
 	}
 	filter := bson.M{
-		"timestamp": bson.M{
-			"$gte": startTimestamp,
-			"$lte": endTimestamp,
+		"date": bson.M{
+			"$gte": time.UnixMilli(startTimestamp),
+			"$lte": time.UnixMilli(endTimestamp),
 		},
 	}
 	pipeline := bson.A{

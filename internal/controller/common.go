@@ -7,6 +7,7 @@ import (
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
@@ -38,6 +39,7 @@ func (e *CommonController) Report(ctx *gin.Context) {
 		obj["uid"] = userID
 		obj["ip"] = ctx.ClientIP()
 		obj["ua"] = ctx.Request.UserAgent()
+		obj["date"] = time.UnixMilli(int64(obj["timestamp"].(float64)))
 	}
 	commonD := dao.CommonDAO{}
 	if err := commonD.InsertReport(ctx, payload.Data); err != nil {

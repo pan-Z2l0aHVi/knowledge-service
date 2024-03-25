@@ -4,16 +4,14 @@ import (
 	"knowledge-service/internal/dao"
 	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
+	"knowledge-service/pkg/consts"
 
 	"github.com/gin-gonic/gin"
 )
 
 type DocService struct{}
 
-func (e *DocService) FormatDoc(
-	ctx *gin.Context,
-	doc model.Doc,
-) (entity.DocInfo, error) {
+func (e *DocService) FormatDoc(ctx *gin.Context, doc model.Doc) (entity.DocInfo, error) {
 	userD := dao.UserDAO{}
 	author, err := userD.FindByUserID(ctx, doc.AuthorID)
 	if err != nil {
@@ -27,4 +25,16 @@ func (e *DocService) FormatDoc(
 			Avatar:   author.Avatar,
 		},
 	}, nil
+}
+
+func (e *DocService) DeleteDocs(ctx *gin.Context, docIDs []string) error {
+	docD := dao.DocDAO{}
+	if err := docD.DeleteMany(ctx, docIDs); err != nil {
+		return err
+	}
+	feedD := dao.FeedDAO{}
+	if err := feedD.DeleteManyBySubject(ctx, docIDs, consts.DocFeed); err != nil {
+		return err
+	}
+	return nil
 }

@@ -3,6 +3,7 @@ package controller
 import (
 	"knowledge-service/internal/dao"
 	"knowledge-service/internal/entity"
+	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
 
@@ -80,10 +81,15 @@ func (e *SpaceController) Delete(ctx *gin.Context) {
 		return
 	}
 	spaceD := dao.SpaceDAO{}
-	err := spaceD.DeleteMany(ctx, payload.SpaceIDs)
-	if err != nil {
+	if err := spaceD.DeleteMany(ctx, payload.SpaceIDs); err != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
+	}
+	for _, spaceID := range payload.SpaceIDs {
+		if err := deleteSpaceContent(ctx, spaceID); err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
+		}
 	}
 	tools.RespSuccess(ctx, nil)
 }
@@ -130,4 +136,21 @@ func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 		List:  spaces,
 	}
 	tools.RespSuccess(ctx, res)
+}
+
+func deleteSpaceContent(ctx *gin.Context, spaceID string) error {
+	docD := dao.DocDAO{}
+	docs, err := docD.FindManyBySpace(ctx, spaceID)
+	if err != nil {
+		return err
+	}
+	docIDs := []string{}
+	for _, doc := range docs {
+		docIDs = append(docIDs, doc.ID.Hex())
+	}
+	docS := service.DocService{}
+	if err := docS.DeleteDocs(ctx, docIDs); err != nil {
+		return err
+	}
+	return nil
 }

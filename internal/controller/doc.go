@@ -113,15 +113,9 @@ func (e *DocController) Delete(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, "参数错误:"+err.Error(), nil)
 		return
 	}
-	docD := dao.DocDAO{}
-	err := docD.DeleteMany(ctx, payload.DocIDs)
+	docS := service.DocService{}
+	err := docS.DeleteDocs(ctx, payload.DocIDs)
 	if err != nil {
-		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-		return
-	}
-	feedD := dao.FeedDAO{}
-	delErr := feedD.DeleteManyBySubject(ctx, payload.DocIDs, consts.DocFeed)
-	if delErr != nil {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
