@@ -5,6 +5,7 @@ import (
 	"knowledge-service/middleware"
 	"knowledge-service/pkg/tools"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,7 @@ func main() {
 	}
 	app := gin.Default()
 	app.Use(middleware.CORS())
+	app.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	var mongo *tools.Mongo
 	mongo.InitDB()
