@@ -39,11 +39,11 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 	res1 := <-ch1
 	res2 := <-ch2
 	if res1.Error != nil {
-		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, res1.Error.Error(), nil)
 		return
 	}
 	if res2.Error != nil {
-		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+		tools.RespFail(ctx, consts.Fail, res2.Error.Error(), nil)
 		return
 	}
 	data := append(res1.Result.Data, res2.Result.Data...)

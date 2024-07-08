@@ -99,7 +99,7 @@ func (e *DocController) Update(ctx *gin.Context) {
 			subjectIDs := append([]string{}, docInfo.ID.Hex())
 			delErr := feedD.DeleteManyBySubject(ctx, subjectIDs, consts.DocFeed)
 			if delErr != nil {
-				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+				tools.RespFail(ctx, consts.Fail, delErr.Error(), nil)
 				return
 			}
 		}

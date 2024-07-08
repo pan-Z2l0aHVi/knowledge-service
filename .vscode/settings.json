@@ -3,6 +3,7 @@
         "atleast",
         "bson",
         "presign",
+        "qbox",
         "qiniu",
         "unfollow",
         "Wallhaven"
