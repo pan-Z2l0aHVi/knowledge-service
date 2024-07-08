@@ -1,0 +1,1 @@
+{"options":{"timeseries":{"timeField":"date","granularity":"seconds","bucketMaxSpanSeconds":{"$numberInt":"3600"}}},"indexes":[],"collectionName":"fe_report","type":"timeseries"}
