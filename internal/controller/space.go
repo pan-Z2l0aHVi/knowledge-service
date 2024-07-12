@@ -12,6 +12,12 @@ import (
 
 type SpaceController struct{}
 
+// @Summary 获取空间详情
+// @Description
+// @Produce json
+// @Param space_id query string true "空间ID"
+// @Success 200 {object} entity.GetSpaceInfoResp "ok" "空间详情"
+// @Router /space/info [get]
 func (e *SpaceController) GetInfo(ctx *gin.Context) {
 	var query entity.GetSpaceInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -30,6 +36,12 @@ func (e *SpaceController) GetInfo(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 新建空间
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.CreateSpacePayload true "名称和描述"
+// @Success 200 {object} model.Space "ok" "空间详情"
+// @Router /space/create [post]
 func (e *SpaceController) Create(ctx *gin.Context) {
 	var payload entity.CreateSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -54,6 +66,12 @@ func (e *SpaceController) Create(ctx *gin.Context) {
 	tools.RespSuccess(ctx, spaceInfo)
 }
 
+// @Summary 更新空间
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.UpdateSpacePayload true "空间ID、名称和描述"
+// @Success 200 {object} model.Space "ok" "更新后的空间详情"
+// @Router /space/update [post]
 func (e *SpaceController) Update(ctx *gin.Context) {
 	var payload entity.UpdateSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -74,6 +92,12 @@ func (e *SpaceController) Update(ctx *gin.Context) {
 	tools.RespSuccess(ctx, spaceInfo)
 }
 
+// @Summary 删除空间
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.DeleteSpacePayload true "空间ID列表"
+// @Success 200 "ok"
+// @Router /space/delete [post]
 func (e *SpaceController) Delete(ctx *gin.Context) {
 	var payload entity.DeleteSpacePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -94,6 +118,12 @@ func (e *SpaceController) Delete(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 搜索空间
+// @Description 校验登录态
+// @Produce json
+// @Param query query entity.SearchSpacesQuery true "query参数"
+// @Success 200 {object} entity.GetSpacesResp "ok" "空间列表"
+// @Router /space/search [get]
 func (e *SpaceController) SearchSpaces(ctx *gin.Context) {
 	var query entity.SearchSpacesQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {

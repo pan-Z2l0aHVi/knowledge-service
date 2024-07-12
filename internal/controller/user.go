@@ -21,6 +21,11 @@ import (
 
 type UserController struct{}
 
+// @Summary 获取本人用户信息
+// @Description 校验登录态
+// @Produce json
+// @Success 200 {object} entity.Profile "ok" "本人用户信息"
+// @Router /user/profile [get]
 func (e *UserController) GetProfile(ctx *gin.Context) {
 	var userID string
 	if uid, exist := ctx.Get("uid"); exist {
@@ -45,6 +50,12 @@ func (e *UserController) GetProfile(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 更新本人用户信息
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.UpdateProfilePayload true "昵称和头像"
+// @Success 200 {object} entity.Profile "ok" "更新后的本人用户信息"
+// @Router /user/profile [post]
 func (e *UserController) UpdateProfile(ctx *gin.Context) {
 	var payload entity.UpdateProfilePayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -74,6 +85,12 @@ func (e *UserController) UpdateProfile(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 获取其他人用户信息
+// @Description 使用但不校验登录态
+// @Produce json
+// @Param user_id query string true "用户ID"
+// @Success 200 {object} entity.UserItem "ok" "用户信息"
+// @Router /user/user_info [get]
 func (e *UserController) GetUserInfo(ctx *gin.Context) {
 	var query entity.GetUserInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -120,6 +137,12 @@ func (e *UserController) GetUserInfo(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 用户登录
+// @Description 微信授权登录｜Github授权登录
+// @Produce json
+// @Param request body entity.LoginPayload true "登录参数"
+// @Success 200 {object} entity.LoginRes "ok" "Token和用户信息"
+// @Router /user/sign_in [post]
 func (e *UserController) Login(ctx *gin.Context) {
 	var payload entity.LoginPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -162,6 +185,11 @@ func (e *UserController) Login(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 获取易登二维码
+// @Description 用于微信扫码登录
+// @Produce json
+// @Success 200 {object} entity.GetYDQRCodeResp "ok" "二维码链接和易登临时ID"
+// @Router /user/yd_qrcode [get]
 func (e *UserController) GetYDQRCode(ctx *gin.Context) {
 	v := url.Values{}
 	v.Set("secret", consts.YDSecret)
@@ -197,6 +225,12 @@ func (e *UserController) GetYDQRCode(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 检查易登状态
+// @Description 用于微信扫码登录
+// @Produce json
+// @Param temp_user_id query string true "易登临时ID"
+// @Success 200 {object} entity.GetYDLoginStatusResp "ok" "是否成功登录"
+// @Router /user/yd_login_status [get]
 func (e *UserController) GetYDLoginStatus(ctx *gin.Context) {
 	var query entity.GetYDLoginStatusQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -216,6 +250,12 @@ func (e *UserController) GetYDLoginStatus(ctx *gin.Context) {
 	})
 }
 
+// @Summary 易登回调
+// @Description 提供给易登侧调用，获取用户扫码状态
+// @Produce json
+// @Param request body entity.YDCallbackPayload true "登录参数"
+// @Success 200 "ok"
+// @Router /user/yd_callback [post]
 func (e *UserController) YDCallback(ctx *gin.Context) {
 	var payload entity.YDCallbackPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -236,6 +276,11 @@ func (e *UserController) YDCallback(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 获取收藏的动态列表
+// @Description 校验登录态
+// @Produce json
+// @Success 200 {array} entity.FeedInfo "ok" "收藏的动态列表"
+// @Router /user/collected_feeds [get]
 func (e *UserController) GetCollectedFeeds(ctx *gin.Context) {
 	var userID string
 	if uid, exist := ctx.Get("uid"); exist {
@@ -269,6 +314,12 @@ func (e *UserController) GetCollectedFeeds(ctx *gin.Context) {
 	tools.RespSuccess(ctx, feedList)
 }
 
+// @Summary 收藏动态
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.AddFeedToCollectionPayload true "动态ID"
+// @Success 200 "ok"
+// @Router /user/collect_feed [post]
 func (e *UserController) CollectFeed(ctx *gin.Context) {
 	var payload entity.AddFeedToCollectionPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -298,6 +349,12 @@ func (e *UserController) CollectFeed(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 取消收藏动态
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.RemoveFeedFromCollectionPayload true "动态ID"
+// @Success 200 "ok"
+// @Router /user/cancel_collect_feed [post]
 func (e *UserController) CancelCollectFeed(ctx *gin.Context) {
 	var payload entity.RemoveFeedFromCollectionPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -316,6 +373,11 @@ func (e *UserController) CancelCollectFeed(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 获取关注的用户列表
+// @Description 校验登录态
+// @Produce json
+// @Success 200 {array} entity.UserItem "ok" "关注的用户列表"
+// @Router /user/followed_users [get]
 func (e *UserController) GetFollowedUsers(ctx *gin.Context) {
 	var userID string
 	if uid, exist := ctx.Get("uid"); exist {
@@ -351,6 +413,12 @@ func (e *UserController) GetFollowedUsers(ctx *gin.Context) {
 	tools.RespSuccess(ctx, users)
 }
 
+// @Summary 关注用户
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.FollowUserPayload true "用户ID"
+// @Success 200 "ok"
+// @Router /user/follow_user [post]
 func (e *UserController) FollowUser(ctx *gin.Context) {
 	var payload entity.FollowUserPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -377,14 +445,15 @@ func (e *UserController) FollowUser(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	user, err := userD.FindByUserID(ctx, userID)
-	if err != nil {
-		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-		return
-	}
-	tools.RespSuccess(ctx, user)
+	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 取关用户
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.UnfollowUserPayload true "用户ID"
+// @Success 200 "ok"
+// @Router /user/unfollow_user [post]
 func (e *UserController) UnfollowUser(ctx *gin.Context) {
 	var payload entity.UnfollowUserPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -400,14 +469,14 @@ func (e *UserController) UnfollowUser(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
-	user, err := userD.FindByUserID(ctx, userID)
-	if err != nil {
-		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
-		return
-	}
-	tools.RespSuccess(ctx, user)
+	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 获取收藏的壁纸列表
+// @Description 校验登录态
+// @Produce json
+// @Success 200 {array} entity.WallpaperItem "ok" "收藏的壁纸列表"
+// @Router /user/collected_wallpapers [get]
 func (e *UserController) GetCollectedWallpapers(ctx *gin.Context) {
 	var userID string
 	if uid, exist := ctx.Get("uid"); exist {
@@ -422,6 +491,12 @@ func (e *UserController) GetCollectedWallpapers(ctx *gin.Context) {
 	tools.RespSuccess(ctx, wallpapers)
 }
 
+// @Summary 收藏壁纸
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.AddWallpaperToCollectionPayload true "壁纸数据"
+// @Success 200 "ok"
+// @Router /user/collect_wallpaper [post]
 func (e *UserController) CollectWallpaper(ctx *gin.Context) {
 	var payload entity.AddWallpaperToCollectionPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -451,6 +526,12 @@ func (e *UserController) CollectWallpaper(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 取消收藏壁纸
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.RemoveWallpaperFromCollectionPayload true "壁纸数据"
+// @Success 200 "ok"
+// @Router /user/cancel_collect_wallpaper [post]
 func (e *UserController) CancelCollectWallpaper(ctx *gin.Context) {
 	var payload entity.RemoveWallpaperFromCollectionPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {

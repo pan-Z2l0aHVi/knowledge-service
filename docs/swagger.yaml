@@ -1,0 +1,1624 @@
+definitions:
+  entity.AddFeedToCollectionPayload:
+    properties:
+      feed_id:
+        type: string
+    required:
+    - feed_id
+    type: object
+  entity.AddWallpaperToCollectionPayload:
+    properties:
+      wallpaper:
+        $ref: '#/definitions/model.Wallpaper'
+    required:
+    - wallpaper
+    type: object
+  entity.Author:
+    properties:
+      avatar:
+        type: string
+      id:
+        type: string
+      nickname:
+        type: string
+    type: object
+  entity.CommentInfo:
+    properties:
+      commentator:
+        $ref: '#/definitions/entity.Commentator'
+      content:
+        type: string
+      creation_time:
+        type: string
+      feed_id:
+        type: string
+      id:
+        type: string
+      sub_comments:
+        items:
+          $ref: '#/definitions/entity.ReplyInfo'
+        type: array
+      update_time:
+        type: string
+      user_id:
+        type: string
+    type: object
+  entity.CommentPayload:
+    properties:
+      content:
+        type: string
+      feed_id:
+        type: string
+    required:
+    - content
+    - feed_id
+    type: object
+  entity.CommentResp:
+    properties:
+      commentator:
+        $ref: '#/definitions/entity.Commentator'
+      content:
+        type: string
+      creation_time:
+        type: string
+      feed_id:
+        type: string
+      id:
+        type: string
+      sub_comments:
+        items:
+          $ref: '#/definitions/entity.ReplyInfo'
+        type: array
+      update_time:
+        type: string
+      user_id:
+        type: string
+    type: object
+  entity.Commentator:
+    properties:
+      avatar:
+        type: string
+      id:
+        type: string
+      nickname:
+        type: string
+    type: object
+  entity.CreateDocPayload:
+    properties:
+      content:
+        type: string
+      cover:
+        type: string
+      space_id:
+        type: string
+      title:
+        type: string
+    required:
+    - space_id
+    - title
+    type: object
+  entity.CreateSpacePayload:
+    properties:
+      desc:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  entity.Creator:
+    properties:
+      avatar:
+        type: string
+      id:
+        type: string
+      nickname:
+        type: string
+    type: object
+  entity.DeleteCommentPayload:
+    properties:
+      comment_id:
+        type: string
+      feed_id:
+        type: string
+      sub_comment_id:
+        type: string
+    required:
+    - feed_id
+    type: object
+  entity.DeleteDocPayload:
+    properties:
+      doc_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - doc_ids
+    type: object
+  entity.DeleteSpacePayload:
+    properties:
+      space_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - space_ids
+    type: object
+  entity.DocInfo:
+    properties:
+      author:
+        $ref: '#/definitions/entity.Author'
+      author_id:
+        type: string
+      content:
+        type: string
+      cover:
+        type: string
+      creation_time:
+        type: string
+      doc_id:
+        type: string
+      public:
+        type: boolean
+      space_id:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+      update_time:
+        type: string
+    type: object
+  entity.FeedInfo:
+    properties:
+      collected:
+        type: boolean
+      comments:
+        items:
+          $ref: '#/definitions/model.Comment'
+        type: array
+      comments_count:
+        type: integer
+      creation_time:
+        type: string
+      creator:
+        $ref: '#/definitions/entity.Creator'
+      creator_id:
+        type: string
+      id:
+        type: string
+      likes:
+        items:
+          $ref: '#/definitions/entity.LikeInfo'
+        type: array
+      likes_count:
+        type: integer
+      subject:
+        $ref: '#/definitions/entity.DocInfo'
+      subject_id:
+        type: string
+      subject_type:
+        type: string
+      update_time:
+        type: string
+    type: object
+  entity.FollowUserPayload:
+    properties:
+      user_id:
+        type: string
+    required:
+    - user_id
+    type: object
+  entity.GetBucketTokenResp:
+    properties:
+      token:
+        type: string
+    type: object
+  entity.GetCommentListResp:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/entity.CommentInfo'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.GetDocInfoResp:
+    properties:
+      author:
+        $ref: '#/definitions/entity.Author'
+      author_id:
+        type: string
+      content:
+        type: string
+      cover:
+        type: string
+      creation_time:
+        type: string
+      doc_id:
+        type: string
+      public:
+        type: boolean
+      space_id:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+      update_time:
+        type: string
+    type: object
+  entity.GetDocsResp:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/entity.DocInfo'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.GetFeedInfoResp:
+    properties:
+      collected:
+        type: boolean
+      comments:
+        items:
+          $ref: '#/definitions/model.Comment'
+        type: array
+      comments_count:
+        type: integer
+      creation_time:
+        type: string
+      creator:
+        $ref: '#/definitions/entity.Creator'
+      creator_id:
+        type: string
+      id:
+        type: string
+      likes:
+        items:
+          $ref: '#/definitions/entity.LikeInfo'
+        type: array
+      likes_count:
+        type: integer
+      subject:
+        $ref: '#/definitions/entity.DocInfo'
+      subject_id:
+        type: string
+      subject_type:
+        type: string
+      update_time:
+        type: string
+    type: object
+  entity.GetFeedListResp:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/entity.FeedInfo'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.GetRelatedFeedsResp:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/entity.FeedInfo'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.GetSignedURLResp:
+    properties:
+      url:
+        type: string
+    type: object
+  entity.GetSpaceInfoResp:
+    properties:
+      creation_time:
+        type: string
+      desc:
+        type: string
+      name:
+        type: string
+      owner_id:
+        type: string
+      space_id:
+        type: string
+      update_time:
+        type: string
+    type: object
+  entity.GetSpacesResp:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/model.Space'
+        type: array
+      total:
+        type: integer
+    type: object
+  entity.GetStaticsResp:
+    properties:
+      pv:
+        type: integer
+      uv:
+        type: integer
+    type: object
+  entity.GetWallpaperInfoResp:
+    properties:
+      data:
+        $ref: '#/definitions/entity.WallpaperItem'
+    type: object
+  entity.GetYDLoginStatusResp:
+    properties:
+      has_login:
+        type: boolean
+    type: object
+  entity.GetYDQRCodeResp:
+    properties:
+      qrcode_url:
+        type: string
+      temp_user_id:
+        type: string
+    type: object
+  entity.LikeFeedPayload:
+    properties:
+      event:
+        type: string
+      feed_id:
+        type: string
+    required:
+    - event
+    - feed_id
+    type: object
+  entity.LikeInfo:
+    properties:
+      avatar:
+        type: string
+      creation_time:
+        type: string
+      nickname:
+        type: string
+      user_id:
+        type: string
+    type: object
+  entity.LoginPayload:
+    properties:
+      code:
+        type: string
+      type:
+        type: integer
+    required:
+    - code
+    - type
+    type: object
+  entity.LoginRes:
+    properties:
+      associated:
+        type: integer
+      avatar:
+        type: string
+      collected_feed_ids:
+        items:
+          type: string
+        type: array
+      collected_wallpapers:
+        items:
+          $ref: '#/definitions/model.Wallpaper'
+        type: array
+      creation_time:
+        type: string
+      followed_user_ids:
+        items:
+          type: string
+        type: array
+      github_id:
+        type: integer
+      nickname:
+        type: string
+      token:
+        type: string
+      update_time:
+        type: string
+      user_id:
+        type: string
+      wechat_id:
+        type: string
+    type: object
+  entity.Profile:
+    properties:
+      associated:
+        type: integer
+      avatar:
+        type: string
+      creation_time:
+        type: string
+      github_id:
+        type: integer
+      nickname:
+        type: string
+      update_time:
+        type: string
+      user_id:
+        type: string
+      wechat_id:
+        type: string
+    type: object
+  entity.RemoveFeedFromCollectionPayload:
+    properties:
+      feed_id:
+        type: string
+    required:
+    - feed_id
+    type: object
+  entity.RemoveWallpaperFromCollectionPayload:
+    properties:
+      wallpaper_id:
+        type: string
+    required:
+    - wallpaper_id
+    type: object
+  entity.ReplyInfo:
+    properties:
+      commentator:
+        $ref: '#/definitions/entity.Commentator'
+      content:
+        type: string
+      creation_time:
+        type: string
+      feed_id:
+        type: string
+      id:
+        type: string
+      reply_commentator:
+        $ref: '#/definitions/entity.Commentator'
+      reply_user_id:
+        type: string
+      update_time:
+        type: string
+      user_id:
+        type: string
+    type: object
+  entity.ReplyPayload:
+    properties:
+      comment_id:
+        type: string
+      content:
+        type: string
+      feed_id:
+        type: string
+      reply_user_id:
+        type: string
+    required:
+    - content
+    - feed_id
+    type: object
+  entity.ReportPayload:
+    properties:
+      data:
+        items: {}
+        type: array
+      token:
+        type: string
+    required:
+    - data
+    type: object
+  entity.UnfollowUserPayload:
+    properties:
+      user_id:
+        type: string
+    required:
+    - user_id
+    type: object
+  entity.UpdateCommentPayload:
+    properties:
+      comment_id:
+        type: string
+      content:
+        type: string
+      feed_id:
+        type: string
+      sub_comment_id:
+        type: string
+    required:
+    - feed_id
+    type: object
+  entity.UpdateDocPayload:
+    properties:
+      content:
+        type: string
+      cover:
+        type: string
+      doc_id:
+        type: string
+      public:
+        type: boolean
+      summary:
+        type: string
+      title:
+        type: string
+    required:
+    - doc_id
+    type: object
+  entity.UpdateDraftPayload:
+    properties:
+      content:
+        type: string
+      doc_id:
+        type: string
+    required:
+    - content
+    - doc_id
+    type: object
+  entity.UpdateProfilePayload:
+    properties:
+      avatar:
+        type: string
+      nickname:
+        type: string
+    type: object
+  entity.UpdateSpacePayload:
+    properties:
+      desc:
+        type: string
+      name:
+        type: string
+      space_id:
+        type: string
+    required:
+    - space_id
+    type: object
+  entity.UserItem:
+    properties:
+      associated:
+        type: integer
+      avatar:
+        type: string
+      collected:
+        type: boolean
+      creation_time:
+        type: string
+      github_id:
+        type: integer
+      nickname:
+        type: string
+      update_time:
+        type: string
+      user_id:
+        type: string
+      wechat_id:
+        type: string
+    type: object
+  entity.WallpaperItem:
+    properties:
+      category:
+        type: string
+      collected:
+        type: boolean
+      colors:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      dimension_x:
+        type: integer
+      dimension_y:
+        type: integer
+      favorites:
+        type: integer
+      file_size:
+        type: integer
+      file_type:
+        type: string
+      id:
+        type: string
+      path:
+        type: string
+      purity:
+        type: string
+      ratio:
+        type: string
+      resolution:
+        type: string
+      short_url:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/model.Tag'
+        type: array
+      thumbs:
+        $ref: '#/definitions/model.Thumbs'
+      url:
+        type: string
+      views:
+        type: integer
+    type: object
+  entity.WeChatUserInfo:
+    properties:
+      avatarUrl:
+        type: string
+      gender:
+        type: string
+      nickName:
+        type: string
+      openId:
+        type: string
+    type: object
+  entity.YDCallbackPayload:
+    properties:
+      cancelLogin:
+        type: boolean
+      scanSuccess:
+        type: boolean
+      tempUserId:
+        type: string
+      wxMaUserInfo:
+        $ref: '#/definitions/entity.WeChatUserInfo'
+    required:
+    - tempUserId
+    type: object
+  model.Comment:
+    properties:
+      content:
+        type: string
+      creation_time:
+        type: string
+      feed_id:
+        type: string
+      id:
+        type: string
+      sub_comments:
+        items:
+          $ref: '#/definitions/model.SubComment'
+        type: array
+      update_time:
+        type: string
+      user_id:
+        type: string
+    type: object
+  model.Doc:
+    properties:
+      author_id:
+        type: string
+      content:
+        type: string
+      cover:
+        type: string
+      creation_time:
+        type: string
+      doc_id:
+        type: string
+      public:
+        type: boolean
+      space_id:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+      update_time:
+        type: string
+    type: object
+  model.Draft:
+    properties:
+      content:
+        type: string
+      creation_time:
+        type: string
+    type: object
+  model.Like:
+    properties:
+      creation_time:
+        type: string
+      user_id:
+        type: string
+    type: object
+  model.Space:
+    properties:
+      creation_time:
+        type: string
+      desc:
+        type: string
+      name:
+        type: string
+      owner_id:
+        type: string
+      space_id:
+        type: string
+      update_time:
+        type: string
+    type: object
+  model.SubComment:
+    properties:
+      content:
+        type: string
+      creation_time:
+        type: string
+      feed_id:
+        type: string
+      id:
+        type: string
+      reply_user_id:
+        type: string
+      update_time:
+        type: string
+      user_id:
+        type: string
+    type: object
+  model.Tag:
+    properties:
+      alias:
+        type: string
+      category:
+        type: string
+      category_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      purity:
+        type: string
+    type: object
+  model.Thumbs:
+    properties:
+      large:
+        type: string
+      original:
+        type: string
+      small:
+        type: string
+    type: object
+  model.Wallpaper:
+    properties:
+      category:
+        type: string
+      colors:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      dimension_x:
+        type: integer
+      dimension_y:
+        type: integer
+      favorites:
+        type: integer
+      file_size:
+        type: integer
+      file_type:
+        type: string
+      id:
+        type: string
+      path:
+        type: string
+      purity:
+        type: string
+      ratio:
+        type: string
+      resolution:
+        type: string
+      short_url:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/model.Tag'
+        type: array
+      thumbs:
+        $ref: '#/definitions/model.Thumbs'
+      url:
+        type: string
+      views:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /common/qiniu_token:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "七牛云token
+          schema:
+            $ref: '#/definitions/entity.GetBucketTokenResp'
+      summary: 获取七牛云token
+  /common/r2_signed_url:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "Cloudflare R2预上传链接
+          schema:
+            $ref: '#/definitions/entity.GetSignedURLResp'
+      summary: 获取Cloudflare R2预上传链接
+  /common/report:
+    post:
+      description: 使用但不校验登录态
+      parameters:
+      - description: token和埋点数据
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ReportPayload'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ok
+      summary: 埋点上报
+  /common/statics:
+    get:
+      parameters:
+      - in: query
+        name: end_timestamp
+        type: integer
+      - in: query
+        name: start_timestamp
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "统计数据
+          schema:
+            $ref: '#/definitions/entity.GetStaticsResp'
+      summary: 获取统计数据
+  /doc/create:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 空间ID、标题、封面、内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateDocPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "文档详情
+          schema:
+            $ref: '#/definitions/model.Doc'
+      summary: 新建文档
+  /doc/delete:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 文档ID列表
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.DeleteDocPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 删除文档
+  /doc/docs:
+    get:
+      description: 使用但不校验登录态
+      parameters:
+      - in: query
+        name: author_id
+        type: string
+      - in: query
+        name: keywords
+        type: string
+      - in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: page_size
+        required: true
+        type: integer
+      - in: query
+        name: sort_by
+        type: string
+      - in: query
+        name: sort_type
+        type: string
+      - in: query
+        name: space_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "文档列表
+          schema:
+            $ref: '#/definitions/entity.GetDocsResp'
+      summary: 搜索文档
+  /doc/drafts:
+    get:
+      description: 校验登录态
+      parameters:
+      - in: query
+        name: doc_id
+        required: true
+        type: string
+      - in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: page_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "草稿列表
+          schema:
+            items:
+              $ref: '#/definitions/model.Draft'
+            type: array
+      summary: 获取文档草稿
+  /doc/info:
+    get:
+      parameters:
+      - description: 文档ID
+        in: query
+        name: doc_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "文档详情
+          schema:
+            $ref: '#/definitions/entity.GetDocInfoResp'
+      summary: 获取文档详情
+  /doc/update:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 文档ID、空间ID、标题、封面、内容、摘要
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateDocPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "更新后的文档详情
+          schema:
+            $ref: '#/definitions/model.Doc'
+      summary: 更新文档
+  /doc/update_drafts:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 文档ID和草稿内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateDraftPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "更新后的草稿详情
+          schema:
+            $ref: '#/definitions/model.Draft'
+      summary: 更新文档草稿
+  /feed/comment:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 动态ID、评论内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CommentPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "评论详情
+          schema:
+            $ref: '#/definitions/entity.CommentResp'
+      summary: 评论动态
+  /feed/comment_delete:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 动态ID、主评论ID、子评论ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.DeleteCommentPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 删除评论
+  /feed/comment_list:
+    get:
+      parameters:
+      - in: query
+        name: feed_id
+        required: true
+        type: string
+      - in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: page_size
+        required: true
+        type: integer
+      - in: query
+        name: sort_by
+        type: string
+      - in: query
+        name: sort_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "评论列表
+          schema:
+            $ref: '#/definitions/entity.GetCommentListResp'
+      summary: 获取评论列表
+  /feed/comment_update:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 动态ID、主评论ID、子评论ID、评论内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateCommentPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "更新后的评论详情
+          schema:
+            $ref: '#/definitions/entity.CommentInfo'
+      summary: 更新评论
+  /feed/info:
+    get:
+      description: 使用但不校验登录态
+      parameters:
+      - description: 动态ID
+        in: query
+        name: feed_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "动态详情
+          schema:
+            $ref: '#/definitions/entity.GetFeedInfoResp'
+      summary: 获取动态详情
+  /feed/like:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 动态ID、点赞或取消点赞
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.LikeFeedPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 点赞|取消点赞 动态
+  /feed/list:
+    get:
+      description: 使用但不校验登录态
+      parameters:
+      - in: query
+        name: author_id
+        type: string
+      - in: query
+        name: keywords
+        type: string
+      - in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: page_size
+        required: true
+        type: integer
+      - in: query
+        name: sort_by
+        type: string
+      - in: query
+        name: sort_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "动态列表
+          schema:
+            $ref: '#/definitions/entity.GetFeedListResp'
+      summary: 搜索动态
+  /feed/related_feeds:
+    get:
+      description: 使用但不校验登录态。
+      parameters:
+      - in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: page_size
+        required: true
+        type: integer
+      - in: query
+        name: space_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "动态列表
+          schema:
+            $ref: '#/definitions/entity.GetRelatedFeedsResp'
+      summary: 获取同一空间下相关动态列表
+  /feed/reply:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 动态ID、评论ID、目标用户ID、回复内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ReplyPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "回复评论详情
+          schema:
+            $ref: '#/definitions/entity.ReplyInfo'
+      summary: 回复评论
+  /space/create:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 名称和描述
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateSpacePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "空间详情
+          schema:
+            $ref: '#/definitions/model.Space'
+      summary: 新建空间
+  /space/delete:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 空间ID列表
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.DeleteSpacePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 删除空间
+  /space/info:
+    get:
+      parameters:
+      - description: 空间ID
+        in: query
+        name: space_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "空间详情
+          schema:
+            $ref: '#/definitions/entity.GetSpaceInfoResp'
+      summary: 获取空间详情
+  /space/search:
+    get:
+      description: 校验登录态
+      parameters:
+      - in: query
+        name: keywords
+        type: string
+      - in: query
+        name: owner_id
+        type: string
+      - in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: page_size
+        required: true
+        type: integer
+      - in: query
+        name: sort_by
+        type: string
+      - in: query
+        name: sort_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "空间列表
+          schema:
+            $ref: '#/definitions/entity.GetSpacesResp'
+      summary: 搜索空间
+  /space/update:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 空间ID、名称和描述
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateSpacePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "更新后的空间详情
+          schema:
+            $ref: '#/definitions/model.Space'
+      summary: 更新空间
+  /user/cancel_collect_feed:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 动态ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RemoveFeedFromCollectionPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 取消收藏动态
+  /user/cancel_collect_wallpaper:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 壁纸数据
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RemoveWallpaperFromCollectionPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 取消收藏壁纸
+  /user/collect_feed:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 动态ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AddFeedToCollectionPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 收藏动态
+  /user/collect_wallpaper:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 壁纸数据
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AddWallpaperToCollectionPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 收藏壁纸
+  /user/collected_feeds:
+    get:
+      description: 校验登录态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "收藏的动态列表
+          schema:
+            items:
+              $ref: '#/definitions/entity.FeedInfo'
+            type: array
+      summary: 获取收藏的动态列表
+  /user/collected_wallpapers:
+    get:
+      description: 校验登录态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "收藏的壁纸列表
+          schema:
+            items:
+              $ref: '#/definitions/entity.WallpaperItem'
+            type: array
+      summary: 获取收藏的壁纸列表
+  /user/follow_user:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 用户ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.FollowUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 关注用户
+  /user/followed_users:
+    get:
+      description: 校验登录态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "关注的用户列表
+          schema:
+            items:
+              $ref: '#/definitions/entity.UserItem'
+            type: array
+      summary: 获取关注的用户列表
+  /user/profile:
+    get:
+      description: 校验登录态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "本人用户信息
+          schema:
+            $ref: '#/definitions/entity.Profile'
+      summary: 获取本人用户信息
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 昵称和头像
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateProfilePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "更新后的本人用户信息
+          schema:
+            $ref: '#/definitions/entity.Profile'
+      summary: 更新本人用户信息
+  /user/sign_in:
+    post:
+      description: 微信授权登录｜Github授权登录
+      parameters:
+      - description: 登录参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.LoginPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "Token和用户信息
+          schema:
+            $ref: '#/definitions/entity.LoginRes'
+      summary: 用户登录
+  /user/unfollow_user:
+    post:
+      description: 校验登录态
+      parameters:
+      - description: 用户ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UnfollowUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 取关用户
+  /user/user_info:
+    get:
+      description: 使用但不校验登录态
+      parameters:
+      - description: 用户ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "用户信息
+          schema:
+            $ref: '#/definitions/entity.UserItem'
+      summary: 获取其他人用户信息
+  /user/yd_callback:
+    post:
+      description: 提供给易登侧调用，获取用户扫码状态
+      parameters:
+      - description: 登录参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.YDCallbackPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+      summary: 易登回调
+  /user/yd_login_status:
+    get:
+      description: 用于微信扫码登录
+      parameters:
+      - description: 易登临时ID
+        in: query
+        name: temp_user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "是否成功登录
+          schema:
+            $ref: '#/definitions/entity.GetYDLoginStatusResp'
+      summary: 检查易登状态
+  /user/yd_qrcode:
+    get:
+      description: 用于微信扫码登录
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "二维码链接和易登临时ID
+          schema:
+            $ref: '#/definitions/entity.GetYDQRCodeResp'
+      summary: 获取易登二维码
+  /wallpaper/info:
+    get:
+      description: 使用但不校验登录态
+      parameters:
+      - description: 壁纸链接
+        in: query
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "壁纸详情
+          schema:
+            $ref: '#/definitions/entity.GetWallpaperInfoResp'
+      summary: 获取壁纸详情
+  /wallpaper/search:
+    get:
+      description: 使用但不校验登录态
+      parameters:
+      - in: query
+        name: ai_art_filter
+        required: true
+        type: string
+      - in: query
+        name: atleast
+        type: string
+      - in: query
+        name: categories
+        required: true
+        type: string
+      - in: query
+        name: colors
+        type: string
+      - in: query
+        name: order
+        required: true
+        type: string
+      - in: query
+        name: page
+        required: true
+        type: string
+      - in: query
+        name: purity
+        required: true
+        type: string
+      - in: query
+        name: q
+        type: string
+      - in: query
+        name: ratios
+        type: string
+      - in: query
+        name: resolutions
+        type: string
+      - in: query
+        name: sorting
+        required: true
+        type: string
+      - in: query
+        name: topRange
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok" "壁纸列表
+          schema:
+            items:
+              $ref: '#/definitions/entity.WallpaperItem'
+            type: array
+      summary: 搜索壁纸
+swagger: "2.0"

@@ -13,6 +13,12 @@ import (
 
 type FeedController struct{}
 
+// @Summary 获取动态详情
+// @Description 使用但不校验登录态
+// @Produce json
+// @Param feed_id query string true "动态ID"
+// @Success 200 {object} entity.GetFeedInfoResp "ok" "动态详情"
+// @Router /feed/info [get]
 func (e *FeedController) GetInfo(ctx *gin.Context) {
 	var query entity.GetFeedInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -40,6 +46,12 @@ func (e *FeedController) GetInfo(ctx *gin.Context) {
 	})
 }
 
+// @Summary 搜索动态
+// @Description 使用但不校验登录态
+// @Produce json
+// @Param query query entity.SearchFeedsListQuery true "query参数"
+// @Success 200 {object} entity.GetFeedListResp "ok" "动态列表"
+// @Router /feed/list [get]
 func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 	var query entity.SearchFeedsListQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -121,6 +133,12 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 点赞|取消点赞 动态
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.LikeFeedPayload true "动态ID、点赞或取消点赞"
+// @Success 200 "ok"
+// @Router /feed/like [post]
 func (e *FeedController) LikeFeed(ctx *gin.Context) {
 	var payload entity.LikeFeedPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -165,6 +183,12 @@ func (e *FeedController) LikeFeed(ctx *gin.Context) {
 	}
 }
 
+// @Summary 评论动态
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.CommentPayload true "动态ID、评论内容"
+// @Success 200 {object} entity.CommentResp "ok" "评论详情"
+// @Router /feed/comment [post]
 func (e *FeedController) Comment(ctx *gin.Context) {
 	var payload entity.CommentPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -192,6 +216,12 @@ func (e *FeedController) Comment(ctx *gin.Context) {
 	})
 }
 
+// @Summary 获取评论列表
+// @Description
+// @Produce json
+// @Param query query entity.GetCommentListQuery true "query参数"
+// @Success 200 {object} entity.GetCommentListResp "ok" "评论列表"
+// @Router /feed/comment_list [get]
 func (e *FeedController) GetCommentList(ctx *gin.Context) {
 	var query entity.GetCommentListQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -229,6 +259,12 @@ func (e *FeedController) GetCommentList(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 回复评论
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.ReplyPayload true "动态ID、评论ID、目标用户ID、回复内容"
+// @Success 200 {object} entity.ReplyInfo "ok" "回复评论详情"
+// @Router /feed/reply [post]
 func (e *FeedController) Reply(ctx *gin.Context) {
 	var payload entity.ReplyPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -261,6 +297,12 @@ func (e *FeedController) Reply(ctx *gin.Context) {
 	tools.RespSuccess(ctx, replyInfo)
 }
 
+// @Summary 删除评论
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.DeleteCommentPayload true "动态ID、主评论ID、子评论ID"
+// @Success 200 "ok"
+// @Router /feed/comment_delete [post]
 func (e *FeedController) DeleteComment(ctx *gin.Context) {
 	var payload entity.DeleteCommentPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -275,6 +317,12 @@ func (e *FeedController) DeleteComment(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 更新评论
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.UpdateCommentPayload true "动态ID、主评论ID、子评论ID、评论内容"
+// @Success 200 {object} entity.CommentInfo "ok" "更新后的评论详情"
+// @Router /feed/comment_update [post]
 func (e *FeedController) UpdateComment(ctx *gin.Context) {
 	var payload entity.UpdateCommentPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -310,6 +358,12 @@ func (e *FeedController) UpdateComment(ctx *gin.Context) {
 	tools.RespSuccess(ctx, commentInfo)
 }
 
+// @Summary 获取同一空间下相关动态列表
+// @Description 使用但不校验登录态。
+// @Produce json
+// @Param query query entity.GetRelatedFeedsQuery true "query参数"
+// @Success 200 {object} entity.GetRelatedFeedsResp "ok" "动态列表"
+// @Router /feed/related_feeds [get]
 func (e *FeedController) GetRelatedFeeds(ctx *gin.Context) {
 	var query entity.GetRelatedFeedsQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {

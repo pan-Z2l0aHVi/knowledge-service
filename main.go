@@ -1,12 +1,16 @@
 package main
 
 import (
+	_ "knowledge-service/docs"
 	"knowledge-service/internal/router"
 	"knowledge-service/middleware"
 	"knowledge-service/pkg/tools"
+	"os"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -23,6 +27,7 @@ func main() {
 	var redis *tools.Redis
 	redis.InitRedis()
 
+	initSwagger(app)
 	registerRoutes(app)
 
 	addr := cfg.Host + ":" + cfg.Port
@@ -31,10 +36,16 @@ func main() {
 	}
 }
 
+func initSwagger(app *gin.Engine) {
+	if mode := os.Getenv("GIN_MODE"); mode != "release" {
+		app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
+}
+
 func registerRoutes(app *gin.Engine) {
 	router.InitCommonRouter(app)
 	router.InitUserRouter(app)
-	router.InitRDocRouter(app)
+	router.InitDocRouter(app)
 	router.InitFeedRouter(app)
 	router.InitSpaceRouter(app)
 	router.InitWallpaperRouter(app)

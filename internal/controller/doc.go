@@ -12,6 +12,12 @@ import (
 
 type DocController struct{}
 
+// @Summary 获取文档详情
+// @Description
+// @Produce json
+// @Param doc_id query string true "文档ID"
+// @Success 200 {object} entity.GetDocInfoResp "ok" "文档详情"
+// @Router /doc/info [get]
 func (e *DocController) GetInfo(ctx *gin.Context) {
 	var query entity.GetDocInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -36,6 +42,12 @@ func (e *DocController) GetInfo(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 新建文档
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.CreateDocPayload true "空间ID、标题、封面、内容"
+// @Success 200 {object} model.Doc "ok" "文档详情"
+// @Router /doc/create [post]
 func (e *DocController) Create(ctx *gin.Context) {
 	var payload entity.CreateDocPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -62,6 +74,12 @@ func (e *DocController) Create(ctx *gin.Context) {
 	tools.RespSuccess(ctx, docInfo)
 }
 
+// @Summary 更新文档
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.UpdateDocPayload true "文档ID、空间ID、标题、封面、内容、摘要"
+// @Success 200 {object} model.Doc "ok" "更新后的文档详情"
+// @Router /doc/update [post]
 func (e *DocController) Update(ctx *gin.Context) {
 	var payload entity.UpdateDocPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -107,6 +125,12 @@ func (e *DocController) Update(ctx *gin.Context) {
 	tools.RespSuccess(ctx, docInfo)
 }
 
+// @Summary 删除文档
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.DeleteDocPayload true "文档ID列表"
+// @Success 200 "ok"
+// @Router /doc/delete [post]
 func (e *DocController) Delete(ctx *gin.Context) {
 	var payload entity.DeleteDocPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -122,6 +146,12 @@ func (e *DocController) Delete(ctx *gin.Context) {
 	tools.RespSuccess(ctx, nil)
 }
 
+// @Summary 搜索文档
+// @Description 使用但不校验登录态
+// @Produce json
+// @Param query query entity.SearchDocsQuery true "query参数"
+// @Success 200 {object} entity.GetDocsResp "ok" "文档列表"
+// @Router /doc/docs [get]
 func (e *DocController) SearchDocs(ctx *gin.Context) {
 	var query entity.SearchDocsQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -178,6 +208,12 @@ func (e *DocController) SearchDocs(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 获取文档草稿
+// @Description 校验登录态
+// @Produce json
+// @Param query query entity.GetDraftQuery true "文档ID和分页参数"
+// @Success 200 {array} model.Draft "ok" "草稿列表"
+// @Router /doc/drafts [get]
 func (e *DocController) GetDrafts(ctx *gin.Context) {
 	var query entity.GetDraftQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -193,6 +229,12 @@ func (e *DocController) GetDrafts(ctx *gin.Context) {
 	tools.RespSuccess(ctx, drafts)
 }
 
+// @Summary 更新文档草稿
+// @Description 校验登录态
+// @Produce json
+// @Param request body entity.UpdateDraftPayload true "文档ID和草稿内容"
+// @Success 200 {object} model.Draft "ok" "更新后的草稿详情"
+// @Router /doc/update_drafts [post]
 func (e *DocController) UpdateDrafts(ctx *gin.Context) {
 	var payload entity.UpdateDraftPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {

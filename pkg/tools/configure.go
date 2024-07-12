@@ -3,7 +3,6 @@ package tools
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
@@ -33,11 +32,9 @@ type RedisConfigure struct {
 var _cfg *Configure
 
 func ParseConfigure() (*Configure, error) {
-	env := os.Getenv("CONFIG_PATH")
-	fmt.Println("CONFIG_PATH", env)
 	var path string
-	if customPath := os.Getenv("CONFIG_PATH"); customPath != "" {
-		path = customPath
+	if configPath := os.Getenv("CONFIG_PATH"); configPath != "" {
+		path = configPath
 	}
 	file, err := os.Open((path))
 	if err != nil {

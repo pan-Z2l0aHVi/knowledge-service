@@ -21,6 +21,12 @@ import (
 
 type CommonController struct{}
 
+// @Summary 埋点上报
+// @Description 使用但不校验登录态
+// @Produce json
+// @Param request body entity.ReportPayload true "token和埋点数据"
+// @Success 204 "ok"
+// @Router /common/report [post]
 func (e *CommonController) Report(ctx *gin.Context) {
 	var payload entity.ReportPayload
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -49,6 +55,12 @@ func (e *CommonController) Report(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+// @Summary 获取统计数据
+// @Description
+// @Produce json
+// @Param query query entity.GetStaticsQuery false "起止时间"
+// @Success 200 {object} entity.GetStaticsResp "ok" "统计数据"
+// @Router /common/statics [get]
 func (e *CommonController) GetStatics(ctx *gin.Context) {
 	var query entity.GetStaticsQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -73,6 +85,11 @@ func (e *CommonController) GetStatics(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 获取七牛云token
+// @Description
+// @Produce json
+// @Success 200 {object} entity.GetBucketTokenResp "ok" "七牛云token"
+// @Router /common/qiniu_token [get]
 func (e *CommonController) GetQiniuToken(ctx *gin.Context) {
 	putPolicy := storage.PutPolicy{
 		Scope: consts.QINIU_BUCKET,
@@ -86,6 +103,11 @@ func (e *CommonController) GetQiniuToken(ctx *gin.Context) {
 	tools.RespSuccess(ctx, res)
 }
 
+// @Summary 获取Cloudflare R2预上传链接
+// @Description
+// @Produce json
+// @Success 200 {object} entity.GetSignedURLResp "ok" "Cloudflare R2预上传链接"
+// @Router /common/r2_signed_url [get]
 func (e *CommonController) GetR2SignedURL(ctx *gin.Context) {
 	var query entity.GetSignedURLQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {

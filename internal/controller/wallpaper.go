@@ -19,6 +19,12 @@ import (
 
 type WallpaperController struct{}
 
+// @Summary 搜索壁纸
+// @Description 使用但不校验登录态
+// @Produce json
+// @Param query query entity.SearchWallpaperQuery true "query参数"
+// @Success 200 {array} entity.WallpaperItem "ok" "壁纸列表"
+// @Router /wallpaper/search [get]
 func (e *WallpaperController) Search(ctx *gin.Context) {
 	var query entity.SearchWallpaperQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
@@ -76,6 +82,12 @@ func (e *WallpaperController) Search(ctx *gin.Context) {
 	}
 }
 
+// @Summary 获取壁纸详情
+// @Description 使用但不校验登录态
+// @Produce json
+// @Param url query string true "壁纸链接"
+// @Success 200 {object} entity.GetWallpaperInfoResp "ok" "壁纸详情"
+// @Router /wallpaper/info [get]
 func (e *WallpaperController) GetInfo(ctx *gin.Context) {
 	var query entity.GetWallpaperInfoQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRDocRouter(app *gin.Engine) {
+func InitDocRouter(app *gin.Engine) {
 	group := app.Group("doc")
 	docC := controller.DocController{}
 	group.GET("/info", docC.GetInfo)
