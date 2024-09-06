@@ -36,5 +36,9 @@ func (e *DocService) DeleteDocs(ctx *gin.Context, docIDs []string) error {
 	if err := feedD.DeleteManyBySubject(ctx, docIDs, consts.DocFeed); err != nil {
 		return err
 	}
+	feedS := FeedService{}
+	if err := feedS.RemoveAllFeedListCache(); err != nil {
+		return err
+	}
 	return nil
 }

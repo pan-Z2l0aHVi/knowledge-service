@@ -91,7 +91,7 @@ func checkUserAuth(ctx *gin.Context, callback Callback) {
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		userID := claims["uid"].(string)
-		err := refreshToken(userID, tokenStr)
+		err := refreshToken(userID, tokenStr, claims)
 		if err != nil {
 			callback(err)
 			return
@@ -101,7 +101,15 @@ func checkUserAuth(ctx *gin.Context, callback Callback) {
 	ctx.Next()
 }
 
-func refreshToken(userID string, originalTokenStr string) error {
+func refreshToken(userID string, originalTokenStr string, claims jwt.MapClaims) error {
+	expirationTime, err := claims.GetExpirationTime()
+	if err != nil {
+		return err
+	}
+	remainTime := expirationTime.Sub(time.Now())
+	if remainTime > time.Hour*24*6 {
+		return nil
+	}
 	rdsInst := tools.Redis{}
 	rds := rdsInst.GetRDS()
 	newTokenStr, err := tools.CreateToken(userID)

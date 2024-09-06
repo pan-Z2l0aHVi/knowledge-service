@@ -5,6 +5,7 @@ import (
 	"knowledge-service/internal/dao"
 	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
+	"knowledge-service/pkg/tools"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -195,4 +196,32 @@ func (e *FeedService) formatCommentator(user model.User) entity.Commentator {
 		Nickname: user.Nickname,
 		Avatar:   user.Avatar,
 	}
+}
+
+func (e *FeedService) RemoveAllFeedListCache() error {
+	rdsInst := tools.Redis{}
+	rds := rdsInst.GetRDS()
+	pattern := "feed_list_*"
+	cursor := uint64(0)
+	for {
+		// 扫描匹配的键
+		var keys []string
+		var err error
+		keys, cursor, err = rds.Scan(cursor, pattern, 100).Result()
+		if err != nil {
+			return err
+		}
+		// 删除匹配的键
+		if len(keys) > 0 {
+			_, err = rds.Del(keys...).Result()
+			if err != nil {
+				return err
+			}
+		}
+		// 如果 cursor 为 0，表示已经遍历完成
+		if cursor == 0 {
+			break
+		}
+	}
+	return nil
 }

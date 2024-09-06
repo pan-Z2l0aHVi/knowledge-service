@@ -105,8 +105,8 @@ func (e *DocController) Update(ctx *gin.Context) {
 		return
 	}
 	if payload.Public != nil {
+		feedS := service.FeedService{}
 		if *payload.Public {
-			feedS := service.FeedService{}
 			_, err := feedS.SyncFeed(ctx, authorID, docInfo.AuthorID, docInfo.ID.Hex(), consts.DocFeed)
 			if err != nil {
 				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
@@ -120,6 +120,11 @@ func (e *DocController) Update(ctx *gin.Context) {
 				tools.RespFail(ctx, consts.Fail, delErr.Error(), nil)
 				return
 			}
+		}
+		err := feedS.RemoveAllFeedListCache()
+		if err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
 		}
 	}
 	tools.RespSuccess(ctx, docInfo)

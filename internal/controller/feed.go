@@ -1,12 +1,15 @@
 package controller
 
 import (
+	"encoding/json"
 	"knowledge-service/internal/dao"
 	"knowledge-service/internal/entity"
 	"knowledge-service/internal/model"
 	"knowledge-service/internal/service"
 	"knowledge-service/pkg/consts"
 	"knowledge-service/pkg/tools"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -70,6 +73,29 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 	if query.SortBy == "" {
 		query.SortBy = "update_time"
 	}
+
+	// 优先取缓存
+	rdsInst := tools.Redis{}
+	rds := rdsInst.GetRDS()
+
+	cacheKey := "feed_list_" +
+		strconv.Itoa(query.Page) + "_" +
+		strconv.Itoa(query.PageSize) + "_" +
+		query.Keywords + "_" +
+		query.SortBy + "_" +
+		query.SortType + "_" +
+		query.AuthorID
+
+	cacheVal, err := rds.Get(cacheKey).Result()
+	if err == nil {
+		var result entity.GetFeedListResp
+		err = json.Unmarshal([]byte(cacheVal), &result)
+		if err == nil {
+			tools.RespSuccess(ctx, result)
+			return
+		}
+	}
+
 	feedD := dao.FeedDAO{}
 	feeds := []model.Feed{}
 	var feedsTotal int64 = 0
@@ -130,6 +156,11 @@ func (e *FeedController) SearchFeedList(ctx *gin.Context) {
 		Total: feedsTotal,
 		List:  feedList,
 	}
+	// 缓存一下
+	feedListRespJson, err := json.Marshal(res)
+	if err == nil {
+		rds.Set(cacheKey, string(feedListRespJson), 30*24*time.Hour)
+	}
 	tools.RespSuccess(ctx, res)
 }
 
@@ -155,6 +186,8 @@ func (e *FeedController) LikeFeed(ctx *gin.Context) {
 		tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 		return
 	}
+	feedS := service.FeedService{}
+
 	switch payload.Event {
 	case "like":
 		if !liked {
@@ -163,6 +196,10 @@ func (e *FeedController) LikeFeed(ctx *gin.Context) {
 				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 				return
 			}
+		}
+		if err := feedS.RemoveAllFeedListCache(); err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
 		}
 		tools.RespSuccess(ctx, nil)
 		return
@@ -174,6 +211,10 @@ func (e *FeedController) LikeFeed(ctx *gin.Context) {
 				tools.RespFail(ctx, consts.Fail, err.Error(), nil)
 				return
 			}
+		}
+		if err := feedS.RemoveAllFeedListCache(); err != nil {
+			tools.RespFail(ctx, consts.Fail, err.Error(), nil)
+			return
 		}
 		tools.RespSuccess(ctx, nil)
 		return
